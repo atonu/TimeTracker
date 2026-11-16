@@ -7,7 +7,7 @@ const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const oswald = Oswald({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-display" });
 
 export const metadata: Metadata = {
-  title: "Time Tracker",
+  title: "Tickwell",
   description: "Parallel daily timers for the things you spend time on.",
 };
 

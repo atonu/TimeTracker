@@ -12,7 +12,13 @@ export type Topic = {
   deleted?: boolean;
   /** Hidden from the table: an active topic's column goes blank, an archived one disappears. */
   hidden?: boolean;
+  /** When a break reminder is due. In the past = the alarm is ringing until stopped. */
+  breakUntil?: number | null;
+  /** Length of the current break, for its progress ring. */
+  breakMs?: number;
 };
+
+export const isRinging = (t: Topic, now: number) => t.breakUntil != null && now >= t.breakUntil;
 
 /** dateKey (YYYY-MM-DD) -> topicId -> milliseconds spent that day */
 export type Log = Record<string, Record<string, number>>;

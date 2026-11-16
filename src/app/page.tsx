@@ -1,5 +1,5 @@
-import TimeTracker from "@/components/TimeTracker";
+import Tickwell from "@/components/Tickwell";
 
 export default function Page() {
-  return <TimeTracker />;
+  return <Tickwell />;
 }

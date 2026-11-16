@@ -75,7 +75,20 @@ export const BrushIcon = () => (
   </svg>
 );
 
-export const EyeIcon = () => (
+export const AlarmIcon = ({ size = 14 }: { size?: number }) => (
+  <svg {...base} width={size} height={size}>
+    <circle cx="12" cy="13" r="7" />
+    <path d="M12 9.5V13l2.5 1.5M4 5 2 7M20 5l2 2" />
+  </svg>
+);
+
+export const StopIcon = () => (
+  <svg width={14} height={14} viewBox="0 0 24 24" fill="currentColor">
+    <rect x="5" y="5" width="14" height="14" rx="3" />
+  </svg>
+);
+
+export const EyeIcon =() => (
   <svg {...base} width={15} height={15}>
     <path d="M2 12s3.6-7 10-7 10 7 10 7-3.6 7-10 7S2 12 2 12z" />
     <circle cx="12" cy="12" r="3" />

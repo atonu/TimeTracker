@@ -553,3 +553,265 @@
 .tile.on .tile-name {
   color: var(--ink);
 }
+
+/* ───────── Break reminder ───────── */
+
+.play-wrap {
+  position: absolute;
+  right: var(--btn-edge);
+  bottom: var(--btn-edge);
+  width: var(--btn);
+  height: var(--btn);
+  transition:
+    width var(--dur) var(--ease),
+    height var(--dur) var(--ease),
+    right var(--dur) var(--ease),
+    bottom var(--dur) var(--ease);
+}
+.play-wrap .play-btn {
+  position: static;
+  width: 100%;
+  height: 100%;
+  transition:
+    transform 0.15s,
+    background 0.2s,
+    color 0.2s;
+}
+/* orange countdown ring around the play / pause button */
+.break-ring {
+  position: absolute;
+  inset: -6px;
+  width: calc(100% + 12px);
+  height: calc(100% + 12px);
+  overflow: visible;
+  transform: rotate(-90deg);
+  pointer-events: none;
+}
+.break-ring circle {
+  fill: none;
+  stroke-width: 5;
+}
+.ring-track {
+  stroke: rgba(249, 115, 22, 0.2);
+}
+.ring-fill {
+  stroke: #f97316;
+  stroke-linecap: round;
+  transition: stroke-dasharray 1s linear;
+}
+.meta.break {
+  color: #ea6a0a;
+  font-weight: 600;
+}
+
+/* "Set reminder?" popover that dissolves after 5 s */
+/* inside the card, directly to the left of the play / pause button */
+.reminder {
+  position: absolute;
+  right: calc(var(--btn-edge) + var(--btn) + 16px);
+  bottom: var(--btn-edge);
+  z-index: 5;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  color: inherit;
+  animation: rem-in 0.22s var(--ease);
+}
+.reminder.fade {
+  animation: dissolve 0.5s ease-in forwards;
+  pointer-events: none;
+}
+.rem-title {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+.rem-opts {
+  display: flex;
+  align-items: center;
+}
+.rem-opts button {
+  padding: 2px 11px;
+  border: 0;
+  border-left: 1px solid var(--line);
+  border-radius: 0;
+  background: none;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+}
+.rem-opts button:first-child {
+  padding-left: 0;
+  border-left: 0;
+}
+.rem-opts button:hover {
+  color: #ea6a0a;
+}
+.rem-unit {
+  padding-left: 11px;
+  font-size: 12px;
+  color: var(--muted);
+}
+/* compact cards have little room, so give the reminder its own backing */
+.scroller[data-compact] .reminder {
+  padding: 4px 12px;
+  background: var(--paper);
+  border-radius: 12px;
+}
+.reminder.fade {
+  transform-origin: right bottom;
+}
+@keyframes rem-in {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+}
+@keyframes dissolve {
+  to {
+    opacity: 0;
+    filter: blur(8px);
+    transform: scale(0.94);
+  }
+}
+
+/* ───────── Alarm: ringing card ───────── */
+
+.card-cell .card.ringing {
+  animation:
+    alarm-flash 0.9s ease-in-out infinite,
+    alarm-shake 1.2s ease-in-out infinite;
+}
+.card-cell.leaving .card.ringing {
+  animation: fly-away 0.32s cubic-bezier(0.5, 0, 0.9, 0.45) forwards;
+}
+@keyframes alarm-flash {
+  0%,
+  100% {
+    background: var(--paper);
+    color: var(--ink);
+  }
+  50% {
+    background: #a50f1f;
+    color: #fff;
+  }
+}
+@keyframes alarm-shake {
+  0%,
+  45%,
+  100% {
+    transform: rotate(0);
+  }
+  5% {
+    transform: rotate(-2.4deg) translateX(-2px);
+  }
+  10% {
+    transform: rotate(2.4deg) translateX(2px);
+  }
+  15% {
+    transform: rotate(-2.4deg) translateX(-2px);
+  }
+  20% {
+    transform: rotate(2.4deg) translateX(2px);
+  }
+  27% {
+    transform: rotate(-1.4deg);
+  }
+  34% {
+    transform: rotate(1.4deg);
+  }
+  40% {
+    transform: rotate(-0.6deg);
+  }
+}
+.card.ringing .meta,
+.card.ringing .sec {
+  color: inherit;
+  opacity: 0.85;
+}
+.card.ringing .tick-done {
+  stroke: currentColor;
+}
+.card.ringing .tick-base {
+  stroke: color-mix(in srgb, currentColor 28%, transparent);
+}
+.ring-icon {
+  display: inline-grid;
+  transform-origin: 50% 15%;
+  animation: bell 0.45s ease-in-out infinite;
+}
+@keyframes bell {
+  0%,
+  100% {
+    transform: rotate(0);
+  }
+  25% {
+    transform: rotate(-18deg);
+  }
+  75% {
+    transform: rotate(18deg);
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-cell .card.ringing {
+    animation: alarm-flash 1.8s ease-in-out infinite;
+  }
+  .ring-icon {
+    animation: none;
+  }
+}
+
+.stop-btn {
+  position: absolute;
+  right: calc(var(--btn-edge) + var(--btn) + 12px);
+  bottom: var(--btn-edge);
+  z-index: 5;
+  width: var(--btn);
+  height: var(--btn);
+  display: grid;
+  place-items: center;
+  border: 2px solid #a50f1f;
+  border-radius: 50%;
+  background: #fff;
+  color: #a50f1f;
+  box-shadow: 0 2px 10px rgba(0, 0, 0, 0.35);
+  animation: rem-in 0.22s var(--ease);
+  transition:
+    transform 0.15s,
+    width var(--dur) var(--ease),
+    height var(--dur) var(--ease),
+    right var(--dur) var(--ease),
+    bottom var(--dur) var(--ease);
+}
+.stop-btn:hover {
+  transform: scale(1.08);
+}
+
+/* global stop button, top centre of the header */
+.stop-all {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border: 0;
+  border-radius: 999px;
+  background: #a50f1f;
+  color: #fff;
+  font-size: 14px;
+  font-weight: 600;
+  animation: stop-pulse 1.3s ease-out infinite;
+}
+@keyframes stop-pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(165, 15, 31, 0.55);
+  }
+  100% {
+    box-shadow: 0 0 0 14px rgba(165, 15, 31, 0);
+  }
+}

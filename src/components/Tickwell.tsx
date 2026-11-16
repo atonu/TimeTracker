@@ -1,14 +1,15 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { dayKey, fmtDuration, startOfDay, type Topic } from "@/lib/tracker";
+import { playBurst, stopSound, unlockAudio } from "@/lib/alarm";
+import { dayKey, fmtDuration, isRinging, startOfDay, type Topic } from "@/lib/tracker";
 import { useAppearance } from "@/lib/useAppearance";
 import { useTracker } from "@/lib/useTracker";
 import AppearancePanel from "./AppearancePanel";
 import ArchiveDialog from "./ArchiveDialog";
 import ColumnLabel from "./ColumnLabel";
 import ColumnsPanel from "./ColumnsPanel";
-import { ArchiveIcon, BrushIcon, EyeIcon, PlusIcon } from "./icons";
+import { AlarmIcon, ArchiveIcon, BrushIcon, EyeIcon, PlusIcon } from "./icons";
 import TopicCard, { EmptyCard } from "./TopicCard";
 import TopicDialog from "./TopicDialog";
 
@@ -25,9 +26,24 @@ type Modal =
   | { kind: "columns" }
   | null;
 
-export default function TimeTracker() {
-  const { topics, log, now, hydrated, start, pause, save, archive, restore, remove, purgeHistory, loadDemo } =
-    useTracker();
+export default function Tickwell() {
+  const {
+    topics,
+    log,
+    now,
+    hydrated,
+    start,
+    pause,
+    startBreak,
+    clearBreak,
+    stopAlarms,
+    save,
+    archive,
+    restore,
+    remove,
+    purgeHistory,
+    loadDemo,
+  } = useTracker();
   const { theme, setTheme, bg, setBg } = useAppearance();
   const [modal, setModal] = useState<Modal>(null);
   const [leaving, setLeaving] = useState<Set<string>>(new Set());
@@ -46,6 +62,43 @@ export default function TimeTracker() {
     el.addEventListener("scroll", update, { passive: true });
     return () => el.removeEventListener("scroll", update);
   }, []);
+
+  // Browsers only allow sound after a gesture: unlock audio on the first interaction.
+  useEffect(() => {
+    const unlock = () => unlockAudio();
+    window.addEventListener("pointerdown", unlock);
+    window.addEventListener("keydown", unlock);
+    return () => {
+      window.removeEventListener("pointerdown", unlock);
+      window.removeEventListener("keydown", unlock);
+    };
+  }, []);
+
+  // Alarm sound: a 10 s chime when the break ends, then again every 5 minutes until stopped.
+  const played = useRef(new Map<string, number>());
+  useEffect(() => {
+    const ringing = topics.filter((t) => isRinging(t, now));
+    const ids = new Set(ringing.map((t) => t.id));
+    for (const id of [...played.current.keys()]) if (!ids.has(id)) played.current.delete(id);
+    if (ringing.length === 0) {
+      stopSound();
+      return;
+    }
+    for (const t of ringing) {
+      const elapsed = now - (t.breakUntil as number);
+      const cycle = Math.floor(elapsed / 300000);
+      const phase = elapsed % 300000;
+      if (phase < 10000 && played.current.get(t.id) !== cycle && playBurst(10 - phase / 1000)) {
+        played.current.set(t.id, cycle);
+      }
+    }
+  }, [now, topics]);
+
+  const ringingCount = topics.filter((t) => isRinging(t, now)).length;
+  const stopAll = () => {
+    stopSound();
+    stopAlarms();
+  };
 
   /** Flies the card away first, then applies the change so everything re-aligns. */
   const flyAway = useCallback((id: string, action: () => void) => {
@@ -128,11 +181,19 @@ export default function TimeTracker() {
         <header className="topbar">
           <div className="brand">
             <span className="brand-dot" />
-            Time Tracker
+            Tickwell
             <time>
               {new Date(now).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
             </time>
           </div>
+          {ringingCount > 0 && (
+            <button className="stop-all" onClick={stopAll}>
+              <span className="ring-icon">
+                <AlarmIcon size={16} />
+              </span>
+              Stop alarm{ringingCount > 1 ? "s" : ""}
+            </button>
+          )}
           <div className="topbar-actions">
             <button
               className="btn-ghost icon-only"
@@ -176,7 +237,13 @@ export default function TimeTracker() {
                     <div className={`card-cell${leaving.has(t.id) ? " leaving" : ""}`} key={t.id}>
                       <TopicCard
                         topic={t}
+                        now={now}
                         spentMs={log[today]?.[t.id] ?? 0}
+                        onSetBreak={(m) => startBreak(t.id, m)}
+                        onStopAlarm={() => {
+                          stopSound();
+                          clearBreak(t.id);
+                        }}
                         onToggle={() => (t.startedAt != null ? pause(t.id) : start(t.id))}
                         onEdit={() => setModal({ kind: "topic", topic: t })}
                         onArchive={() => archiveTopic(t)}

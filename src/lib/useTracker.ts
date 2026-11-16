@@ -69,8 +69,33 @@ export function useTracker() {
   const start = useCallback((id: string) => {
     setState((s) => ({
       ...s,
-      topics: s.topics.map((t) => (t.id === id && t.startedAt == null ? { ...t, startedAt: Date.now() } : t)),
+      // resuming work cancels any pending break reminder / silences its alarm
+      topics: s.topics.map((t) =>
+        t.id === id && t.startedAt == null ? { ...t, startedAt: Date.now(), breakUntil: null } : t,
+      ),
     }));
+  }, []);
+
+  const startBreak = useCallback((id: string, ms: number) => {
+    setState((s) => ({
+      ...s,
+      topics: s.topics.map((t) => (t.id === id ? { ...t, breakUntil: Date.now() + ms, breakMs: ms } : t)),
+    }));
+  }, []);
+
+  const clearBreak = useCallback((id: string) => {
+    setState((s) => ({ ...s, topics: s.topics.map((t) => (t.id === id ? { ...t, breakUntil: null } : t)) }));
+  }, []);
+
+  /** Silences every alarm that is ringing right now. */
+  const stopAlarms = useCallback(() => {
+    setState((s) => {
+      const n = Date.now();
+      return {
+        ...s,
+        topics: s.topics.map((t) => (t.breakUntil != null && n >= t.breakUntil ? { ...t, breakUntil: null } : t)),
+      };
+    });
   }, []);
 
   const pause = useCallback((id: string) => setState((s) => stopTopic(s, id)), []);
@@ -78,7 +103,7 @@ export function useTracker() {
   const save = useCallback((topic: Topic) => {
     setState((s) =>
       s.topics.some((t) => t.id === topic.id)
-        ? { ...s, topics: s.topics.map((t) => (t.id === topic.id ? { ...t, ...topic, startedAt: t.startedAt } : t)) }
+        ? { ...s, topics: s.topics.map((t) => (t.id === topic.id ? { ...t, ...topic, startedAt: t.startedAt, breakUntil: t.breakUntil, breakMs: t.breakMs } : t)) }
         : { ...s, topics: [...s.topics, topic] },
     );
   }, []);
@@ -86,7 +111,7 @@ export function useTracker() {
   const archive = useCallback((id: string) => {
     setState((s) => {
       const n = stopTopic(s, id);
-      return { ...n, topics: n.topics.map((t) => (t.id === id ? { ...t, archivedAt: Date.now() } : t)) };
+      return { ...n, topics: n.topics.map((t) => (t.id === id ? { ...t, archivedAt: Date.now(), breakUntil: null } : t)) };
     });
   }, []);
 
@@ -104,7 +129,7 @@ export function useTracker() {
       return {
         ...n,
         topics: n.topics.map((t) =>
-          t.id === id ? { ...t, deleted: true, archivedAt: t.archivedAt ?? Date.now() } : t,
+          t.id === id ? { ...t, deleted: true, archivedAt: t.archivedAt ?? Date.now(), breakUntil: null } : t,
         ),
       };
     });
@@ -125,5 +150,5 @@ export function useTracker() {
 
   const loadDemo =useCallback(() => setState(demoData()), []);
 
-  return { topics: state.topics, log: live, now, hydrated, start, pause, save, archive, restore, remove, purgeHistory, loadDemo };
+  return { topics: state.topics, log: live, now, hydrated, start, pause, startBreak, clearBreak, stopAlarms, save, archive, restore, remove, purgeHistory, loadDemo };
 }

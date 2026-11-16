@@ -6,10 +6,12 @@ import { dayKey, fmtDuration, isRinging, startOfDay, type Topic } from "@/lib/tr
 import { useAppearance } from "@/lib/useAppearance";
 import { useTracker } from "@/lib/useTracker";
 import AppearancePanel from "./AppearancePanel";
+import HelpModal from "./HelpModal";
+import Onboarding from "./Onboarding";
 import ArchiveDialog from "./ArchiveDialog";
 import ColumnLabel from "./ColumnLabel";
 import ColumnsPanel from "./ColumnsPanel";
-import { AlarmIcon, ArchiveIcon, BrushIcon, EyeIcon, PlusIcon } from "./icons";
+import { AlarmIcon, ArchiveIcon, BrushIcon, EyeIcon, HelpIcon, PlusIcon } from "./icons";
 import TopicCard, { EmptyCard } from "./TopicCard";
 import TopicDialog from "./TopicDialog";
 
@@ -18,12 +20,16 @@ const MIN_DAYS = 14;
 const COMPACT_AFTER = 30;
 const EXPAND_BELOW = 5;
 const FLY_MS = 320;
+const FADE_MS = 260; // cross-fade out
+const ENTER_MS = 400; // cross-fade in
+const EYE_MS = 3000; // how long the floating eye button stays
 
 type Modal =
   | { kind: "topic"; topic: Topic | null }
   | { kind: "archives" }
   | { kind: "appearance" }
   | { kind: "columns" }
+  | { kind: "help" }
   | null;
 
 export default function Tickwell() {
@@ -47,7 +53,36 @@ export default function Tickwell() {
   const { theme, setTheme, bg, setBg } = useAppearance();
   const [modal, setModal] = useState<Modal>(null);
   const [leaving, setLeaving] = useState<Set<string>>(new Set());
+  const [fading, setFading] = useState<Set<string>>(new Set());
+  const [entering, setEntering] = useState<Set<string>>(new Set());
+  const [tour, setTour] = useState(false);
+  useEffect(() => {
+    try {
+      if (!localStorage.getItem("timetracker:onboarded")) setTour(true);
+    } catch {}
+  }, []);
+  const endTour = useCallback(() => {
+    setTour(false);
+    try {
+      localStorage.setItem("timetracker:onboarded", "1");
+    } catch {}
+  }, []);
   const scroller = useRef<HTMLDivElement>(null);
+
+  // Floating eye button above the table: shows on hover, stays 5 s, resets on interaction.
+  const [eyeOn, setEyeOn] = useState(false);
+  const eyeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const eyeHold = () => {
+    if (eyeTimer.current) clearTimeout(eyeTimer.current);
+    setEyeOn(true);
+  };
+  const eyePoke = () => {
+    eyeHold();
+    eyeTimer.current = setTimeout(() => setEyeOn(false), EYE_MS);
+  };
+  useEffect(() => () => {
+    if (eyeTimer.current) clearTimeout(eyeTimer.current);
+  }, []);
 
   // Cards are either fully expanded or compact; CSS animates between the two.
   useEffect(() => {
@@ -113,18 +148,46 @@ export default function Tickwell() {
     }, FLY_MS);
   }, []);
 
+  const withId = (set: Set<string>, id: string, on: boolean) => {
+    const n = new Set(set);
+    if (on) n.add(id);
+    else n.delete(id);
+    return n;
+  };
+
+  /** Fades the card and its column out, applies the change, then fades the column in at its new place. */
+  const crossfade = useCallback((id: string, action: () => void) => {
+    setFading((s) => withId(s, id, true));
+    setTimeout(() => {
+      action();
+      setFading((s) => withId(s, id, false));
+      setEntering((s) => withId(s, id, true));
+      setTimeout(() => setEntering((s) => withId(s, id, false)), ENTER_MS);
+    }, FADE_MS);
+  }, []);
+
+  /** Applies a change that makes a column appear, fading it in. */
+  const reveal = useCallback((id: string, action: () => void) => {
+    action();
+    setEntering((s) => withId(s, id, true));
+    setTimeout(() => setEntering((s) => withId(s, id, false)), ENTER_MS);
+  }, []);
+
+  const fx = (id: string) => (fading.has(id) ? " fading" : "") + (entering.has(id) ? " entering" : "");
+
   const today = dayKey(now);
 
-  const active = useMemo(() => topics.filter((t) => !t.archivedAt), [topics]);
+  const activeAll = useMemo(() => topics.filter((t) => !t.archivedAt), [topics]);
+  // Hiding a topic hides its card and its column.
+  const active = useMemo(() => activeAll.filter((t) => !t.hidden), [activeAll]);
   // Archived (and deleted) topics keep a column at the end, oldest archive first.
   const inactive = useMemo(
     () => topics.filter((t) => t.archivedAt).sort((a, b) => (a.archivedAt ?? 0) - (b.archivedAt ?? 0)),
     [topics],
   );
   const archivedList = useMemo(() => inactive.filter((t) => !t.deleted), [inactive]);
-  // Hidden archived columns vanish; hidden active ones stay in place but go blank.
   const cols = useMemo(() => [...active, ...inactive.filter((t) => !t.hidden)], [active, inactive]);
-  const allColumns = useMemo(() => [...active, ...inactive], [active, inactive]);
+  const allColumns = useMemo(() => [...activeAll, ...inactive], [activeAll, inactive]);
   const n = cols.length;
 
   const days = useMemo(() => {
@@ -151,7 +214,10 @@ export default function Tickwell() {
   const create = () => setModal({ kind: "topic", topic: null });
 
   // Removing a card that is still on screen flies it away before the layout changes.
-  const archiveTopic = (t: Topic) => (t.archivedAt ? archive(t.id) : flyAway(t.id, () => archive(t.id)));
+  const archiveTopic = (t: Topic) => (t.archivedAt ? archive(t.id) : crossfade(t.id, () => archive(t.id)));
+  const restoreTopic = (t: Topic) => crossfade(t.id, () => restore(t.id));
+  const setHidden = (t: Topic, hidden: boolean) =>
+    hidden ? crossfade(t.id, () => save({ ...t, hidden: true })) : reveal(t.id, () => save({ ...t, hidden: false }));
   const deleteTopic = (t: Topic) => (t.archivedAt ? remove(t.id) : flyAway(t.id, () => remove(t.id)));
 
   const dateLabel = (key: string, date: Date) => {
@@ -191,7 +257,7 @@ export default function Tickwell() {
               <span className="ring-icon">
                 <AlarmIcon size={16} />
               </span>
-              Stop alarm{ringingCount > 1 ? "s" : ""}
+              <span className="btn-label">Stop alarm{ringingCount > 1 ? "s" : ""}</span>
             </button>
           )}
           <div className="topbar-actions">
@@ -205,6 +271,14 @@ export default function Tickwell() {
             </button>
             <button
               className="btn-ghost icon-only"
+              onClick={() => setModal({ kind: "help" })}
+              aria-label="Help"
+              title="Help"
+            >
+              <HelpIcon />
+            </button>
+            <button
+              className="btn-ghost icon-only"
               onClick={() => setModal({ kind: "columns" })}
               aria-label="Visible columns"
               title="Visible columns"
@@ -212,11 +286,11 @@ export default function Tickwell() {
               <EyeIcon />
             </button>
             <button className="btn-ghost" onClick={() => setModal({ kind: "archives" })}>
-              <ArchiveIcon /> Archives
+              <ArchiveIcon /> <span className="btn-label">Archives</span>
               {archivedList.length > 0 && <span className="count">{archivedList.length}</span>}
             </button>
             <button className="btn-primary" onClick={create}>
-              <PlusIcon size={16} /> Create Topic
+              <PlusIcon size={16} /> <span className="btn-label">Create Topic</span>
             </button>
           </div>
         </header>
@@ -234,7 +308,7 @@ export default function Tickwell() {
                   </div>
                 ) : (
                   active.map((t) => (
-                    <div className={`card-cell${leaving.has(t.id) ? " leaving" : ""}`} key={t.id}>
+                    <div className={`card-cell${leaving.has(t.id) ? " leaving" : ""}${fx(t.id)}`} key={t.id}>
                       <TopicCard
                         topic={t}
                         now={now}
@@ -254,7 +328,28 @@ export default function Tickwell() {
                 <div />
               </div>
 
-              <div className="grid head-row">
+              <div className="eye-rail">
+                <button
+                  className={`eye-float${eyeOn ? " on" : ""}`}
+                  onMouseEnter={eyeHold}
+                  onMouseLeave={eyePoke}
+                  onClick={() => {
+                    eyePoke();
+                    setModal({ kind: "columns" });
+                  }}
+                  aria-label="Show or hide columns"
+                  title="Show or hide columns"
+                  tabIndex={eyeOn ? 0 : -1}
+                >
+                  <EyeIcon />
+                </button>
+              </div>
+              <div
+                className="grid head-row"
+                onMouseEnter={eyeHold} // stays while the cursor is on the header row
+                onMouseLeave={eyePoke}
+                onPointerUp={(e) => e.pointerType === "touch" && eyePoke()} // touch has no hover
+              >
                 <div className="date-cell">History</div>
                 <div />
                 {n === 0 ? (
@@ -266,13 +361,13 @@ export default function Tickwell() {
                   </div>
                 ) : (
                   cols.map((t, i) => (
-                    <div className={`label-cell${edge(i)}`} key={t.id}>
+                    <div className={`label-cell${edge(i)}${fx(t.id)}`} key={t.id}>
                       <ColumnLabel
                         topic={t}
                         onRename={(title) => save({ ...t, title })}
-                        onToggleHidden={() => save({ ...t, hidden: !t.hidden })}
+                        onToggleHidden={() => setHidden(t, !t.hidden)}
                         onArchive={() => archiveTopic(t)}
-                        onRestore={() => restore(t.id)}
+                        onRestore={() => restoreTopic(t)}
                         onDelete={() => deleteTopic(t)}
                         onPurge={() => purgeHistory(t.id)}
                       />
@@ -293,7 +388,7 @@ export default function Tickwell() {
                   </div>
                   <div />
                   {cols.map((t, i) => (
-                    <div className={`cell${edge(i)}${t.archivedAt ? " archived" : ""}`} key={t.id}>
+                    <div className={`cell${edge(i)}${t.archivedAt ? " archived" : ""}${fx(t.id)}`} key={t.id}>
                       {t.hidden ? "" : fmtDuration(totals[t.id] ?? 0)}
                     </div>
                   ))}
@@ -318,7 +413,7 @@ export default function Tickwell() {
                         const dim = Math.round(ms / 60000) <= 0;
                         return (
                           <div
-                            className={`cell${edge(i)}${dim ? " dim" : ""}${t.archivedAt ? " archived" : ""}`}
+                            className={`cell${edge(i)}${dim ? " dim" : ""}${t.archivedAt ? " archived" : ""}${fx(t.id)}`}
                             key={t.id}
                           >
                             {t.hidden ? "" : fmtDuration(ms)}
@@ -350,7 +445,11 @@ export default function Tickwell() {
       {modal?.kind === "archives" && (
         <ArchiveDialog
           archived={archivedList}
-          onRestore={restore}
+          onRestore={(id) => {
+            const t = topics.find((x) => x.id === id);
+            if (t) restoreTopic(t);
+            else restore(id);
+          }}
           onDelete={remove}
           onClose={close}
         />
@@ -358,10 +457,21 @@ export default function Tickwell() {
       {modal?.kind === "columns" && (
         <ColumnsPanel
           topics={allColumns}
-          onToggle={(t) => save({ ...t, hidden: !t.hidden })}
+          onToggle={(t) => setHidden(t, !t.hidden)}
+          onShowAll={() => allColumns.filter((t) => t.hidden).forEach((t) => setHidden(t, false))}
           onClose={close}
         />
       )}
+      {modal?.kind === "help" && (
+        <HelpModal
+          onClose={close}
+          onTour={() => {
+            close();
+            setTour(true);
+          }}
+        />
+      )}
+      {tour && hydrated && <Onboarding onClose={endTour} />}
       {modal?.kind === "appearance" && (
         <AppearancePanel theme={theme} bg={bg} onTheme={setTheme} onBg={setBg} onClose={close} />
       )}

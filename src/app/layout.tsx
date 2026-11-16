@@ -1,26 +1,66 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Inter, Oswald } from "next/font/google";
+import PwaRegister from "@/components/PwaRegister";
+import { BRAND } from "@/lib/brand";
+import { splashStartupImages } from "@/lib/splash";
 import "./globals.css";
 import "./themes.css";
 
 const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
 const oswald = Oswald({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-display" });
 
+const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const TITLE = `${BRAND.name} · ${BRAND.motto}`;
+
 export const metadata: Metadata = {
-  title: "Tickwell",
-  description: "Parallel daily timers for the things you spend time on.",
+  metadataBase: new URL(SITE),
+  title: { default: TITLE, template: `%s · ${BRAND.name}` },
+  description: BRAND.description,
+  applicationName: BRAND.name,
+  authors: [{ name: BRAND.author, url: BRAND.site }],
+  creator: BRAND.author,
+  keywords: ["time tracker", "daily time budget", "timeboxing", "focus", "ADHD", "productivity", "timer"],
+  manifest: "/manifest.webmanifest",
+  formatDetection: { telephone: false },
+  appleWebApp: {
+    capable: true,
+    title: BRAND.name,
+    statusBarStyle: "default",
+    startupImage: splashStartupImages,
+  },
+  openGraph: {
+    type: "website",
+    siteName: BRAND.name,
+    title: TITLE,
+    description: BRAND.description,
+    url: "/",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: TITLE,
+    description: BRAND.description,
+  },
+};
+
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  themeColor: "#ffffff",
 };
 
 // Applies the saved theme before first paint so there is no flash of the default theme.
-const themeScript = `try{var a=JSON.parse(localStorage.getItem("timetracker:appearance")||"{}");document.documentElement.dataset.theme=a.theme||"gray"}catch(e){}`;
+const themeScript = `try{var a=JSON.parse(localStorage.getItem("timetracker:appearance")||"{}");document.documentElement.dataset.theme=a.theme||"white"}catch(e){document.documentElement.dataset.theme="white"}`;
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${inter.variable} ${oswald.variable}`} data-theme="gray" suppressHydrationWarning>
+    <html lang="en" className={`${inter.variable} ${oswald.variable}`} data-theme="white" suppressHydrationWarning>
       <head>
         <script dangerouslySetInnerHTML={{ __html: themeScript }} />
       </head>
-      <body>{children}</body>
+      <body>
+        {children}
+        <PwaRegister />
+      </body>
     </html>
   );
 }

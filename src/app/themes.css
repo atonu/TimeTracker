@@ -201,6 +201,26 @@
   border-right: 0;
 }
 
+/* ───────── Empty state: just a big plus, no circle ───────── */
+
+.empty-plus {
+  width: auto;
+  height: auto;
+  background: none;
+  color: var(--ink);
+}
+.empty-plus svg {
+  width: 60px;
+  height: 60px;
+  transition:
+    width var(--dur) var(--ease),
+    height var(--dur) var(--ease);
+}
+.scroller[data-compact] .empty-plus svg {
+  width: 36px;
+  height: 36px;
+}
+
 /* ───────── Card fly-away / appear ───────── */
 
 .card-cell .card {
@@ -814,4 +834,717 @@
   100% {
     box-shadow: 0 0 0 14px rgba(165, 15, 31, 0);
   }
+}
+
+/* ═════════════ Phones ═════════════
+   Everything shrinks, buttons lose their text, and 2.5+ cards fit across. */
+
+.m-short {
+  display: none;
+}
+
+@media (max-width: 640px) {
+  .m-long {
+    display: none;
+  }
+  .m-short {
+    display: inline;
+  }
+  :root {
+    --date-w: 58px;
+    --col-w: 116px;
+    --card-w: 108px;
+    --radius: 20px;
+  }
+
+  .scroller {
+    --row-h: max(210px, calc(50dvh - 56px));
+    --card-h: 168px;
+    --time: 27px;
+    --foot: 18px;
+    --btn: 32px;
+    --btn-edge: 11px;
+  }
+  .scroller[data-compact] {
+    --row-h: 100px;
+    --card-h: 88px;
+    --time: 19px;
+    --foot: 0px;
+    --btn: 24px;
+    --btn-edge: 8px;
+  }
+
+  /* header: icon-only buttons */
+  .topbar {
+    height: 56px;
+    padding: 0 12px;
+  }
+  .brand {
+    gap: 8px;
+    font-size: 17px;
+  }
+  .brand-dot {
+    width: 10px;
+    height: 10px;
+  }
+  .topbar-actions {
+    gap: 6px;
+  }
+  .btn-label {
+    display: none;
+  }
+  .btn-primary,
+  .btn-ghost,
+  .btn-ghost.icon-only {
+    position: relative;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
+  .btn-ghost svg,
+  .btn-primary svg {
+    width: 19px;
+    height: 19px;
+  }
+  .count {
+    position: absolute;
+    top: -4px;
+    right: -4px;
+    min-width: 15px;
+    height: 15px;
+    padding: 0 4px;
+    font-size: 9px;
+  }
+  .stop-all {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    justify-content: center;
+    gap: 0;
+  }
+
+  /* cards */
+  .card {
+    padding: 11px;
+  }
+  .card-head {
+    height: 20px;
+    gap: 3px; /* title sits closer to the badge */
+    padding-left: 5px; /* badge moves in from the tick ring */
+  }
+  .badge {
+    width: 9px;
+    height: 9px;
+  }
+  .card-title {
+    font-size: 11px;
+  }
+  .card-tools {
+    position: absolute;
+    right: 6px;
+    top: 4px;
+    z-index: 3;
+    gap: 3px;
+    padding: 2px;
+    border-radius: 999px;
+    background: var(--paper);
+    box-shadow: var(--shadow-sm);
+    pointer-events: none;
+  }
+  .card.tools-open .card-tools {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+  .icon-btn {
+    width: 22px;
+    height: 22px;
+  }
+  .icon-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+  .sec {
+    font-size: 8px;
+    min-width: 0;
+    margin-left: 2px;
+  }
+  .card-title {
+    min-width: 0;
+  }
+  .card-foot {
+    min-width: 0;
+    padding-right: 38px; /* keep clear of the play button */
+    padding-left: 5px; /* room for the done tick next to the card's tick ring */
+  }
+  .meta {
+    max-width: 100%;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .meta {
+    font-size: 9px;
+    gap: 3px;
+  }
+  .meta svg {
+    width: 10px;
+    height: 10px;
+  }
+  .play-btn {
+    border-width: 1.5px;
+  }
+  .play-btn svg {
+    width: 11px;
+    height: 11px;
+  }
+  .break-ring {
+    inset: -4px;
+    width: calc(100% + 8px);
+    height: calc(100% + 8px);
+  }
+  .break-ring circle {
+    stroke-width: 6;
+  }
+  .scroller[data-compact] .card-tools {
+    top: 2px;
+  }
+  /* shrunk cards are narrow: time to the left, button to the right */
+  .scroller[data-compact] .card-body {
+    justify-items: start;
+  }
+
+  /* reminder takes the place of the time while it shows */
+  .card.asking .card-body {
+    opacity: 0;
+  }
+  .reminder {
+    left: 11px;
+    right: 11px;
+    top: 36px;
+    bottom: auto;
+    align-items: center;
+    gap: 6px;
+  }
+  .scroller[data-compact] .reminder {
+    top: 26px;
+    padding: 0;
+    background: none;
+  }
+  .rem-title {
+    font-size: 10px;
+  }
+  /* options stacked vertically, separated by thin horizontal lines */
+  .rem-opts {
+    flex-direction: column;
+    align-items: center;
+  }
+  .rem-opts button,
+  .rem-opts button:first-child {
+    width: 58px;
+    padding: 2px 0;
+    border-left: 0;
+    border-top: 1px solid var(--line);
+    font-size: 12px;
+  }
+  .rem-opts button:first-child {
+    border-top: 0;
+  }
+  .rem-unit {
+    padding: 3px 0 0;
+    text-align: center;
+    font-size: 9px;
+  }
+  /* shrunk cards are too short to stack: back to one row */
+  .scroller[data-compact] .rem-unit {
+    display: none;
+  }
+  .scroller[data-compact] .rem-opts {
+    flex-direction: row;
+  }
+  .scroller[data-compact] .rem-opts button,
+  .scroller[data-compact] .rem-opts button:first-child {
+    width: auto;
+    padding: 2px 6px;
+    border-top: 0;
+    border-left: 1px solid var(--line);
+  }
+  .scroller[data-compact] .rem-opts button:first-child {
+    border-left: 0;
+  }
+  .reminder {
+    top: 28px;
+    gap: 4px;
+  }
+  .stop-btn {
+    right: calc(var(--btn-edge) + var(--btn) + 6px);
+  }
+
+  .empty-plus svg {
+    width: 38px;
+    height: 38px;
+  }
+  .scroller[data-compact] .empty-plus svg {
+    width: 26px;
+    height: 26px;
+  }
+  .empty-label {
+    font-size: 11px;
+  }
+  .empty-card {
+    gap: 8px;
+  }
+
+  /* history table */
+  .head-row {
+    height: 38px;
+    border-radius: 18px 18px 0 0;
+    font-size: 9px;
+  }
+  .head-row .date-cell {
+    border-top-left-radius: 18px;
+  }
+  .row {
+    height: 46px;
+  }
+  .date-cell {
+    padding-left: 8px;
+  }
+  .date-cell b {
+    font-size: 10px;
+  }
+  .date-cell small {
+    font-size: 8px;
+    margin-top: 1px;
+  }
+  .cell {
+    font-size: 12px;
+  }
+  .label-cell {
+    padding: 0 4px;
+  }
+  .label {
+    gap: 5px;
+    padding: 0 4px;
+    font-size: 11px;
+  }
+  .badge.sm {
+    width: 7px;
+    height: 7px;
+  }
+  .label-tools {
+    gap: 2px;
+  }
+  .label-tools .icon-btn {
+    width: 22px;
+    height: 22px;
+  }
+  .label-tools .icon-btn svg {
+    width: 12px;
+    height: 12px;
+  }
+  /* tap a header and the tools cover its title (they take no room otherwise) */
+  .label {
+    position: relative;
+  }
+  .label-tools {
+    position: absolute;
+    inset: 0;
+    justify-content: center;
+    background: var(--paper);
+    pointer-events: none;
+  }
+  .label.open .label-tools {
+    opacity: 1;
+    pointer-events: auto;
+  }
+  .label:hover .label-tools {
+    opacity: 0;
+  }
+  .label.open:hover .label-tools {
+    opacity: 1;
+  }
+  .confirm-msg {
+    display: none;
+  }
+  .confirm .chip {
+    padding: 0 8px;
+    font-size: 11px;
+  }
+  .label-input {
+    width: 96px;
+    height: 26px;
+    font-size: 11px;
+  }
+  .hint {
+    flex-direction: column;
+    gap: 1px;
+    font-size: 9px;
+    line-height: 1.2;
+    text-align: center;
+  }
+  .hint .link {
+    padding: 0;
+  }
+
+  /* dialogs and panels */
+  .overlay {
+    padding: 10px;
+  }
+  .overlay.pop {
+    padding: 62px 10px 10px;
+  }
+  .dialog {
+    padding: 18px;
+    gap: 16px;
+    border-radius: 22px;
+  }
+  .dialog h2 {
+    font-size: 16px;
+  }
+  .tiles {
+    grid-template-columns: repeat(3, 1fr);
+  }
+  .swatches {
+    gap: 7px;
+  }
+  .arch-list li {
+    flex-wrap: wrap;
+  }
+}
+
+/* ---------- Onboarding & help ---------- */
+.dialog.onboarding {
+  position: relative;
+  width: min(400px, 100%);
+  align-items: center;
+  text-align: center;
+  gap: 18px;
+  padding: 34px 28px 22px;
+}
+.ob-skip { position: absolute; top: 14px; right: 16px; }
+.ob-step {
+  display: flex; flex-direction: column; align-items: center; gap: 10px;
+  min-height: 200px; animation: ob-in 0.3s ease both;
+}
+@keyframes ob-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+.ob-icon {
+  display: grid; place-items: center; width: 72px; height: 72px; margin-bottom: 6px;
+  border-radius: 22px; background: var(--soft); color: var(--ink);
+}
+.ob-icon svg { width: 30px; height: 30px; }
+.ob-logo { width: 26px; height: 26px; border-radius: 50%; background: var(--ink); }
+.onboarding h2 { margin: 0; font-size: 20px; }
+.onboarding p, .help p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.onboarding .ob-motto { color: var(--ink); font-weight: 600; }
+.ob-dots { display: flex; gap: 6px; }
+.ob-dots i { width: 6px; height: 6px; border-radius: 50%; background: var(--faint); transition: all 0.2s; }
+.ob-dots i.on { width: 18px; border-radius: 3px; background: var(--ink); }
+.ob-nav { display: flex; justify-content: space-between; align-items: center; width: 100%; }
+
+.dialog.help { width: min(460px, 100%); max-height: calc(100dvh - 48px); overflow: auto; gap: 16px; }
+.help section { display: flex; flex-direction: column; gap: 8px; }
+.help h3 { margin: 0; font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase; color: var(--muted); }
+.help p b, .help-steps b { color: var(--ink); font-weight: 600; }
+.help .help-motto { color: var(--ink); font-size: 17px; font-weight: 600; }
+.help-steps { margin: 0; padding-left: 20px; display: flex; flex-direction: column; gap: 6px; color: var(--muted); font-size: 14px; line-height: 1.5; }
+.help-tour { align-self: flex-start; }
+.help-foot {
+  display: flex; flex-direction: column; gap: 2px; padding-top: 14px;
+  border-top: 1px solid var(--soft); font-size: 13px; color: var(--muted);
+}
+.help-foot a { color: var(--ink); font-weight: 500; }
+
+/* Buttons inside dialogs keep their text on phones (only the header buttons collapse to icons). */
+.onboarding .btn-primary,
+.help .btn-ghost {
+  width: auto;
+  height: 38px;
+  padding: 0 16px;
+  gap: 4px;
+}
+
+/* ---------- Custom reminder (mm : ss) ---------- */
+button.rem-title {
+  padding: 0;
+  border: 0;
+  background: none;
+  font-family: inherit;
+  cursor: pointer;
+}
+button.rem-title:hover {
+  color: #ea6a0a;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.rem-custom {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.rem-field {
+  width: 36px;
+  padding: 5px 0;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: var(--paper);
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+  font-weight: 600;
+  font-variant-numeric: tabular-nums;
+  text-align: center;
+  outline: none;
+}
+.rem-field:focus {
+  border-color: #ea6a0a;
+}
+.rem-colon {
+  font-weight: 600;
+  color: var(--muted);
+}
+.rem-confirm {
+  display: grid;
+  place-items: center;
+  width: 28px;
+  height: 28px;
+  margin-left: 4px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: #ea6a0a;
+  color: #fff;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+.rem-confirm:hover:not(:disabled) {
+  transform: scale(1.08);
+}
+.rem-confirm:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+@media (max-width: 640px) {
+  .rem-field {
+    width: 30px;
+    padding: 4px 0;
+    font-size: 13px;
+  }
+  .rem-confirm {
+    width: 24px;
+    height: 24px;
+    margin-left: 2px;
+  }
+}
+
+/* Countdown ring: always show the full track so the outline reads as concentric with the button */
+.ring-track {
+  stroke: rgba(249, 115, 22, 0.3);
+}
+.break-ring {
+  shape-rendering: geometricPrecision;
+}
+/* no hover/press scaling while ringed: it would make the gap uneven */
+.play-wrap:has(.break-ring) .play-btn:hover,
+.play-wrap:has(.break-ring) .play-btn:active {
+  transform: none;
+}
+
+/* ---------- Cross-fade: hide / archive / restore ---------- */
+.card-cell.fading .card {
+  opacity: 0;
+  transform: scale(0.94);
+  transition:
+    opacity 0.26s ease,
+    transform 0.26s ease;
+  pointer-events: none;
+}
+.label-cell,
+.cell {
+  transition: opacity 0.26s ease;
+}
+.label-cell.fading,
+.cell.fading {
+  opacity: 0;
+  pointer-events: none;
+}
+.label-cell.entering,
+.cell.entering {
+  animation: col-in 0.4s ease both;
+}
+@keyframes col-in {
+  from {
+    opacity: 0;
+  }
+}
+
+/* ---------- Floating eye above the table ---------- */
+.eye-rail {
+  position: sticky;
+  left: 0;
+  z-index: 6;
+  width: 100cqw;
+  height: 0;
+  pointer-events: none;
+}
+.eye-float {
+  position: absolute;
+  top: 8px;
+  right: 14px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.12);
+  cursor: pointer;
+  opacity: 0;
+  transform: translateY(-4px) scale(0.92);
+  pointer-events: none;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease;
+}
+.eye-float.on {
+  opacity: 1;
+  transform: none;
+  pointer-events: auto;
+}
+.eye-float svg {
+  width: 18px;
+  height: 18px;
+}
+
+/* ---------- Icon sizes ---------- */
+.btn-ghost svg,
+.btn-primary svg {
+  width: 19px;
+  height: 19px;
+}
+@media (max-width: 640px) {
+  .brand {
+    font-size: 19px;
+  }
+  .brand-dot {
+    width: 11px;
+    height: 11px;
+  }
+  .eye-float {
+    top: 4px;
+    right: 8px;
+    width: 30px;
+    height: 30px;
+  }
+  .eye-float svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* Eye sits just above the table's top-right corner (inside the header once the cards shrink) */
+.eye-float {
+  top: -46px;
+  right: 32px;
+  transition:
+    opacity 0.25s ease,
+    transform 0.25s ease,
+    top 0.3s ease;
+}
+.scroller[data-compact] .eye-float {
+  top: 8px;
+}
+@media (max-width: 640px) {
+  .eye-float {
+    top: -38px;
+    right: 16px;
+  }
+  .scroller[data-compact] .eye-float {
+    top: 4px;
+  }
+}
+
+/* Floating eye: just a solid eye, no round button */
+.eye-float {
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+.eye-float svg {
+  width: 24px;
+  height: 24px;
+}
+.eye-float svg path {
+  fill: currentColor;
+}
+.eye-float svg circle {
+  fill: var(--bg);
+  stroke: var(--bg);
+}
+@media (max-width: 640px) {
+  .eye-float svg {
+    width: 22px;
+    height: 22px;
+  }
+}
+
+/* Floating eye: 1.5x */
+.eye-float {
+  width: 54px;
+  height: 54px;
+  top: -62px;
+  right: 24px;
+}
+.eye-float svg {
+  width: 36px;
+  height: 36px;
+}
+@media (max-width: 640px) {
+  .eye-float {
+    width: 45px;
+    height: 45px;
+    top: -52px;
+    right: 10px;
+  }
+  .eye-float svg {
+    width: 33px;
+    height: 33px;
+  }
+}
+.scroller[data-compact] .eye-float {
+  top: 0;
+}
+
+/* Floating eye: half the gap between the icon and the table */
+.eye-float {
+  top: -53px;
+}
+@media (max-width: 640px) {
+  .eye-float {
+    top: -46px;
+  }
+}
+.scroller[data-compact] .eye-float {
+  top: 0;
+}
+
+/* Columns panel: grayed "Select all" under the list */
+.select-all {
+  align-self: flex-start;
+  margin-top: -4px;
+  padding: 2px 0 0 4px;
+  border: 0;
+  background: none;
+  color: var(--muted);
+  font: inherit;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+}
+.select-all:hover {
+  color: var(--ink);
 }

@@ -5,8 +5,8 @@ import { useEffect, useState } from "react";
 const KEY = "timetracker:appearance";
 
 export function useAppearance() {
-  const [theme, setTheme] = useState("gray");
-  const [bg, setBg] = useState("none");
+  const [theme, setTheme] = useState("white");
+  const [bg, setBg] = useState("dots");
   const [loaded, setLoaded] = useState(false);
 
   useEffect(() => {

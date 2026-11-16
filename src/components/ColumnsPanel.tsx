@@ -7,11 +7,13 @@ type Props = {
   /** Active topics first, then archived / deleted ones. */
   topics: Topic[];
   onToggle: (topic: Topic) => void;
+  /** Checks every box: shows all hidden columns. */
+  onShowAll: () => void;
   onClose: () => void;
 };
 
 /** Checklist of table columns. Unchecked columns are hidden. */
-export default function ColumnsPanel({ topics, onToggle, onClose }: Props) {
+export default function ColumnsPanel({ topics, onToggle, onShowAll, onClose }: Props) {
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => e.key === "Escape" && onClose();
     window.addEventListener("keydown", onKey);
@@ -43,6 +45,12 @@ export default function ColumnsPanel({ topics, onToggle, onClose }: Props) {
               </li>
             ))}
           </ul>
+        )}
+
+        {topics.some((t) => t.hidden) && (
+          <button className="select-all" onClick={onShowAll}>
+            Select all
+          </button>
         )}
       </div>
     </div>

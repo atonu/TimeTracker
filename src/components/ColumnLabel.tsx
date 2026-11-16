@@ -20,6 +20,7 @@ type Props = {
 /** Column title in the history header. Hover for rename, archive/restore and delete. */
 export default function ColumnLabel({ topic, onRename, onToggleHidden, onArchive, onRestore, onDelete, onPurge }: Props) {
   const [editing, setEditing] = useState(false);
+  const [open, setOpen] = useState(false);
   const [value, setValue] = useState(topic.title);
 
   const commit = () => {
@@ -31,7 +32,10 @@ export default function ColumnLabel({ topic, onRename, onToggleHidden, onArchive
   const state = topic.deleted ? "deleted" : topic.archivedAt ? "archived" : "active";
 
   return (
-    <div className={`label${state !== "active" || topic.hidden ? " archived" : ""}`}>
+    <div
+      className={`label${state !== "active" || topic.hidden ? " archived" : ""}${open ? " open" : ""}`}
+      onClick={() => !editing && setOpen((o) => !o)} // touch screens: tap to reveal the tools
+    >
       <span className="badge sm" style={{ background: topic.color }} />
       {editing ? (
         <input

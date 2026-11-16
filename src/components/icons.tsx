@@ -70,8 +70,17 @@ export const ChevronIcon = () => (
 
 export const BrushIcon = () => (
   <svg {...base} width={17} height={17}>
-    <path d="M18.4 3.6a2 2 0 0 1 2.8 2.8L12 15.6l-3.4-3.4 9.8-8.6z" />
-    <path d="M8.6 12.2C6 12.4 5 14 5 16c0 1.4-.8 2.6-2 3.2 3.8 1.4 8.4.6 9.6-3.8" />
+    <defs>
+      <linearGradient id="brush-grad" x1="3" y1="21" x2="21" y2="3" gradientUnits="userSpaceOnUse">
+        <stop offset="0" stopColor="#f97316" />
+        <stop offset="0.5" stopColor="#ec4899" />
+        <stop offset="1" stopColor="#8b5cf6" />
+      </linearGradient>
+    </defs>
+    <g stroke="url(#brush-grad)">
+      <path d="M18.4 3.6a2 2 0 0 1 2.8 2.8L12 15.6l-3.4-3.4 9.8-8.6z" fill="url(#brush-grad)" fillOpacity={0.22} />
+      <path d="M8.6 12.2C6 12.4 5 14 5 16c0 1.4-.8 2.6-2 3.2 3.8 1.4 8.4.6 9.6-3.8" fill="url(#brush-grad)" fillOpacity={0.22} />
+    </g>
   </svg>
 );
 
@@ -104,5 +113,12 @@ export const EyeOffIcon = () => (
 export const CheckIcon = ({ size = 13 }: { size?: number }) => (
   <svg {...base} width={size} height={size} strokeWidth={2.6}>
     <path d="m5 12.5 4.5 4.5L19 7.5" />
+  </svg>
+);
+
+export const HelpIcon = () => (
+  <svg {...base} width={16} height={16}>
+    <circle cx="12" cy="12" r="9" />
+    <path d="M9.4 9.4a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.3-2.6 3.9M12 17.2v.1" />
   </svg>
 );

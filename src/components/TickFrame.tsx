@@ -31,13 +31,17 @@ export default function TickFrame({ progress }: { progress: number }) {
   let body = null;
   if (w > 0 && h > 0) {
     // The ticks are a wide dashed stroke centred on this path.
-    const o = INSET + BAND / 2;
+    // smaller cards (phones) get a finer, tighter tick ring
+    const k = w < 200 ? 0.55 : 1;
+    const o = (INSET + BAND / 2) * k;
     const rw = w - 2 * o;
     const rh = h - 2 * o;
-    const r = Math.max(4, Math.min(26, rh / 2 - 1));
+    const r = Math.max(4, Math.min(26 * k, rh / 2 - 1));
     const L = 2 * (rw - 2 * r) + 2 * (rh - 2 * r) + 2 * Math.PI * r;
-    const n = Math.round(L / PITCH);
-    const gap = L / n - TICK;
+    const n = Math.round(L / (PITCH * k));
+    const tick = TICK * (k < 1 ? 0.8 : 1);
+    const band = BAND * k;
+    const gap = L / n - tick;
     const d = [
       `M ${w / 2} ${o}`,
       `H ${w - o - r}`,
@@ -51,7 +55,7 @@ export default function TickFrame({ progress }: { progress: number }) {
       `Z`,
     ].join(" ");
     const p = Math.min(1, Math.max(0, progress));
-    const common = { d, fill: "none", strokeWidth: BAND, pathLength: L } as const;
+    const common = { d, fill: "none", strokeWidth: band, pathLength: L } as const;
     body = (
       <svg width={w} height={h} viewBox={`0 0 ${w} ${h}`} aria-hidden>
         <defs>
@@ -59,8 +63,8 @@ export default function TickFrame({ progress }: { progress: number }) {
             <path {...common} stroke="#fff" strokeDasharray={`${p * L} ${L}`} />
           </mask>
         </defs>
-        <path {...common} className="tick-base" strokeDasharray={`${TICK} ${gap}`} />
-        <path {...common} className="tick-done" strokeDasharray={`${TICK} ${gap}`} mask={`url(#${maskId})`} />
+        <path {...common} className="tick-base" strokeDasharray={`${tick} ${gap}`} />
+        <path {...common} className="tick-done" strokeDasharray={`${tick} ${gap}`} mask={`url(#${maskId})`} />
       </svg>
     );
   }

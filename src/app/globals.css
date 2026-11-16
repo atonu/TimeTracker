@@ -1,0 +1,794 @@
+:root {
+  --bg: #f2f2f3;
+  --paper: #ffffff;
+  --soft: #f3f3f4;
+  --ink: #0b0b0c;
+  --muted: #8b8b92;
+  --faint: #c6c6cb;
+  --line: #e8e8eb;
+  --tint: #f8f8f9;
+
+  --card-w: 420px;
+  --col-w: 448px;
+  --date-w: 156px;
+  --radius: 30px;
+  --ease: cubic-bezier(0.4, 0, 0.2, 1);
+  --dur: 0.38s;
+
+  --shadow-sm: 0 2px 4px rgba(0, 0, 0, 0.08), 0 8px 24px rgba(0, 0, 0, 0.1);
+  --shadow-md: 0 3px 6px rgba(0, 0, 0, 0.09), 0 14px 36px rgba(0, 0, 0, 0.14);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  height: 100%;
+  overflow: hidden;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+button {
+  font: inherit;
+  color: inherit;
+  cursor: pointer;
+}
+
+/* ───────── Scroll container (scrolls both ways) ───────── */
+
+.scroller {
+  /* Expanded: the card row fills roughly the top half of the screen. */
+  --row-h: max(300px, calc(50dvh - 76px)); /* cards area = top half of the screen */
+  --card-h: clamp(190px, calc(50dvh - 150px), 250px);
+  --time: calc(var(--card-h) * 0.36);
+  --foot: 34px;
+  --btn: 48px;
+  --btn-edge: 30px;
+  --gap: 0px;
+
+  height: 100dvh;
+  overflow: auto;
+  overflow-anchor: none; /* anchoring fights the animated height change */
+  container-type: inline-size;
+  scrollbar-width: thin;
+  scrollbar-color: var(--faint) transparent;
+}
+.scroller[data-compact] {
+  --row-h: 148px;
+  --card-h: 124px;
+  --time: 44px;
+  --foot: 0px;
+  --btn: 34px;
+  --btn-edge: 26px;
+  --gap: 0px;
+}
+
+.topbar {
+  position: sticky;
+  left: 0;
+  width: 100cqw;
+  height: 76px;
+  padding: 0 28px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+.topbar-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.brand {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  font-weight: 600;
+  font-size: 15px;
+  letter-spacing: -0.01em;
+}
+.brand-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.brand time {
+  margin-left: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+
+/* ───────── Grid shared by cards, labels and every table row ───────── */
+
+.board {
+  width: max-content;
+  min-width: 100%;
+}
+
+.grid {
+  display: grid;
+  grid-template-columns: var(--date-w) minmax(16px, 1fr) repeat(var(--n), var(--col-w)) minmax(16px, 1fr);
+}
+
+/* ───────── Sticky block ───────── */
+
+.sticky-top {
+  position: sticky;
+  top: 0;
+  z-index: 30;
+  background: var(--bg);
+  transition: box-shadow var(--dur) var(--ease);
+}
+.scroller[data-compact] .sticky-top {
+  box-shadow: 0 14px 18px -16px rgba(0, 0, 0, 0.35);
+}
+
+.cards-row {
+  height: var(--row-h);
+  align-items: center;
+  transition: height var(--dur) var(--ease);
+}
+.corner {
+  position: sticky;
+  left: 0;
+  z-index: 40;
+  background: var(--bg);
+}
+.card-cell {
+  display: flex;
+  justify-content: center;
+}
+
+/* ───────── Card ───────── */
+
+.card {
+  position: relative;
+  width: var(--card-w);
+  height: var(--card-h);
+  padding: 30px;
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-sm);
+  transition:
+    height var(--dur) var(--ease),
+    box-shadow 0.25s ease;
+}
+.card:hover,
+.card.running {
+  box-shadow: var(--shadow-md);
+}
+
+.tickframe {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+}
+.tickframe svg {
+  display: block;
+}
+.tick-base {
+  stroke: var(--tick);
+}
+.tick-done {
+  stroke: var(--ink);
+}
+.complete .tick-done {
+  stroke: var(--muted);
+}
+
+.card-head {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  height: 28px;
+  flex: none;
+}
+.badge {
+  flex: none;
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+.badge.sm {
+  width: 10px;
+  height: 10px;
+}
+.running .badge {
+  animation: pulse 1.8s ease-out infinite;
+}
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 color-mix(in srgb, var(--ink) 30%, transparent);
+  }
+  100% {
+    box-shadow: 0 0 0 9px transparent;
+  }
+}
+.card-title {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+.icon-btn {
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  background: var(--soft);
+  transition: background 0.18s;
+}
+.icon-btn:hover {
+  background: var(--hover);
+}
+.card-tools {
+  margin-left: auto;
+  display: flex;
+  gap: 6px;
+  opacity: 0;
+  transform: scale(0.9);
+  transition:
+    opacity 0.18s,
+    transform 0.18s;
+}
+.card:hover .card-tools,
+.card-tools:focus-within {
+  opacity: 1;
+  transform: none;
+}
+
+.card-body {
+  flex: 1;
+  display: grid;
+  place-items: center;
+  min-height: 0;
+}
+.time {
+  font-family: var(--font-display), "Arial Narrow", sans-serif;
+  font-weight: 600;
+  font-size: var(--time);
+  line-height: 1;
+  letter-spacing: 0.01em;
+  font-variant-numeric: tabular-nums;
+  white-space: nowrap;
+  transition: font-size var(--dur) var(--ease);
+}
+.sec {
+  display: inline-block;
+  margin-left: 0.1em;
+  min-width: 1.15em;
+  font-size: 0.24em;
+  font-weight: 500;
+  color: var(--muted);
+}
+
+.card-foot {
+  flex: none;
+  height: var(--foot);
+  opacity: 1;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  transition:
+    height var(--dur) var(--ease),
+    opacity 0.2s;
+}
+.scroller[data-compact] .card-foot {
+  opacity: 0;
+}
+.meta {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 12px;
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.play-btn {
+  position: absolute;
+  right: var(--btn-edge);
+  bottom: var(--btn-edge);
+  width: var(--btn);
+  height: var(--btn);
+  display: grid;
+  place-items: center;
+  border-radius: 50%;
+  border: 2px solid var(--ink);
+  background: var(--ink);
+  color: var(--on-ink);
+  transition:
+    transform 0.15s,
+    width var(--dur) var(--ease),
+    height var(--dur) var(--ease),
+    right var(--dur) var(--ease),
+    bottom var(--dur) var(--ease),
+    background 0.2s,
+    color 0.2s;
+}
+.play-btn:hover {
+  transform: scale(1.07);
+}
+.play-btn:active {
+  transform: scale(0.96);
+}
+.running .play-btn {
+  background: var(--paper);
+  color: var(--ink);
+}
+.play-btn.done {
+  background: var(--hover);
+  border-color: var(--hover);
+  color: var(--muted);
+  cursor: default;
+}
+.play-btn.done:hover {
+  transform: none;
+}
+
+/* Empty state */
+.empty-card {
+  border: 0;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+  text-align: center;
+  transition:
+    height var(--dur) var(--ease),
+    box-shadow 0.25s,
+    transform 0.2s;
+}
+.empty-card:hover {
+  transform: translateY(-2px);
+}
+.empty-plus {
+  display: grid;
+  place-items: center;
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-ink);
+  transition:
+    width var(--dur) var(--ease),
+    height var(--dur) var(--ease);
+}
+.scroller[data-compact] .empty-plus {
+  width: 40px;
+  height: 40px;
+}
+.empty-label {
+  font-size: 15px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+
+/* ───────── Column labels (inside the sticky block) ───────── */
+
+.head-row {
+  height: 52px;
+  border: 1px solid var(--line);
+  border-radius: 26px 26px 0 0;
+  background: var(--paper);
+  color: var(--muted);
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+.head-row .date-cell {
+  flex-direction: row;
+  align-items: center;
+  border-top-left-radius: 26px;
+}
+.label-cell {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 0;
+  padding: 0 14px;
+  border-left: 1px solid var(--line);
+  text-transform: none;
+  letter-spacing: 0;
+  color: var(--ink);
+}
+.label-cell.last {
+  border-right: 1px solid var(--line);
+}
+.label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  max-width: 100%;
+  font-size: 14px;
+  font-weight: 600;
+}
+.label.archived {
+  opacity: 0.5;
+}
+.label-text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.label-edit {
+  width: 24px;
+  height: 24px;
+  opacity: 0;
+  transition:
+    opacity 0.18s,
+    background 0.18s;
+}
+.label-edit svg {
+  width: 13px;
+  height: 13px;
+}
+.label:hover .label-edit,
+.label-edit:focus-visible {
+  opacity: 1;
+}
+.label-input {
+  height: 32px;
+  width: 170px;
+  padding: 0 10px;
+  border-radius: 10px;
+  font-size: 14px;
+  font-weight: 600;
+}
+.hint {
+  grid-column: 3 / -2;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-transform: none;
+  letter-spacing: 0;
+  font-size: 13px;
+  font-weight: 400;
+}
+.link {
+  border: 0;
+  background: none;
+  padding: 0 0 0 5px;
+  color: var(--ink);
+  font-weight: 600;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ───────── History rows ───────── */
+
+.sheet {
+  /* generous height so the page can always scroll, even while the cards animate */
+  min-height: 135dvh;
+  background: var(--paper);
+  border-left: 1px solid var(--line);
+  border-right: 1px solid var(--line);
+  margin: 0;
+}
+.row {
+  height: 66px;
+  border-bottom: 1px solid var(--line);
+}
+.row.today,
+.row.today .date-cell {
+  background: var(--tint);
+}
+
+/* the date column stays put while the topic columns scroll sideways */
+.date-cell {
+  position: sticky;
+  left: 0;
+  z-index: 20;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  padding-left: 28px;
+  background: var(--paper);
+  box-shadow: 1px 0 0 var(--line);
+}
+.date-cell b {
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: -0.01em;
+}
+.date-cell small {
+  margin-top: 2px;
+  font-size: 12px;
+  color: var(--muted);
+}
+
+.cell {
+  display: grid;
+  place-items: center;
+  border-left: 1px solid var(--line);
+  font-size: 15px;
+  font-weight: 500;
+  font-variant-numeric: tabular-nums;
+}
+.cell.last {
+  border-right: 1px solid var(--line);
+}
+.cell.dim {
+  color: var(--faint);
+}
+.cell.archived {
+  color: var(--muted);
+}
+.cell.archived.dim {
+  color: var(--faint);
+}
+.total-row .cell {
+  font-weight: 700;
+}
+
+/* ───────── Buttons & dialogs ───────── */
+
+.btn-primary,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  padding: 0 18px;
+  border-radius: 999px;
+  font-size: 14px;
+  font-weight: 600;
+  transition:
+    transform 0.15s,
+    opacity 0.15s,
+    background 0.15s;
+}
+.btn-primary {
+  border: 0;
+  background: var(--ink);
+  color: var(--on-ink);
+  box-shadow: var(--shadow-sm);
+}
+.btn-ghost {
+  border: 1px solid var(--line);
+  background: var(--paper);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.04);
+}
+.btn-ghost:hover {
+  background: var(--soft);
+}
+.btn-primary:hover:not(:disabled) {
+  transform: translateY(-1px);
+}
+.btn-primary:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.count {
+  display: grid;
+  place-items: center;
+  min-width: 20px;
+  height: 20px;
+  padding: 0 6px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 11px;
+}
+.btn-text {
+  height: 40px;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 999px;
+  background: none;
+  font-size: 14px;
+  font-weight: 500;
+  color: var(--muted);
+}
+.btn-text:hover {
+  background: var(--soft);
+  color: var(--ink);
+}
+.btn-text.danger:hover {
+  color: #d92d20;
+}
+
+.overlay {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  padding: 16px;
+  background: color-mix(in srgb, var(--bg) 70%, transparent);
+  backdrop-filter: blur(8px);
+  animation: fade 0.15s ease-out;
+}
+.dialog {
+  width: min(440px, 100%);
+  max-height: 90dvh;
+  overflow: auto;
+  padding: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md), 0 30px 60px rgba(0, 0, 0, 0.1);
+  animation: rise 0.2s ease-out;
+}
+@keyframes fade {
+  from {
+    opacity: 0;
+  }
+}
+@keyframes rise {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+}
+.dialog h2 {
+  margin: 0;
+  font-size: 18px;
+  letter-spacing: -0.02em;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.field > span {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--muted);
+}
+input {
+  font: inherit;
+  height: 44px;
+  width: 100%;
+  padding: 0 14px;
+  border: 0;
+  border-radius: 14px;
+  background: var(--soft);
+  color: var(--ink);
+  outline: none;
+}
+input:focus-visible {
+  box-shadow: 0 0 0 2px var(--ink);
+}
+.swatches {
+  display: flex;
+  gap: 10px;
+}
+.swatch {
+  width: 28px;
+  height: 28px;
+  border: 0;
+  border-radius: 50%;
+  box-shadow: inset 0 0 0 1px rgba(0, 0, 0, 0.08);
+}
+.swatch.on {
+  box-shadow:
+    0 0 0 2px var(--paper),
+    0 0 0 4px var(--ink);
+}
+.duration {
+  display: flex;
+  gap: 10px;
+}
+.duration label {
+  position: relative;
+  flex: 1;
+}
+.duration input {
+  padding-right: 56px;
+  font-variant-numeric: tabular-nums;
+}
+.duration small {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--muted);
+  font-size: 12px;
+}
+.chips {
+  display: flex;
+  gap: 8px;
+}
+.chip {
+  height: 30px;
+  padding: 0 12px;
+  border: 0;
+  border-radius: 999px;
+  background: var(--soft);
+  font-size: 13px;
+  font-weight: 500;
+}
+.chip:hover {
+  background: var(--hover);
+}
+.chip.on {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+.chip.danger:hover {
+  color: #d92d20;
+}
+.actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+.spacer {
+  flex: 1;
+}
+
+.arch-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+}
+.arch-list li {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 12px 0;
+  border-top: 1px solid var(--line);
+}
+.arch-list li:first-child {
+  border-top: 0;
+}
+.arch-name {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  font-size: 14px;
+  font-weight: 600;
+}
+.arch-name small {
+  margin-top: 2px;
+  font-size: 12px;
+  font-weight: 400;
+  color: var(--muted);
+}
+.arch-empty {
+  margin: 0;
+  color: var(--muted);
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  :root {
+    --date-w: 116px;
+    --card-w: 300px;
+    --col-w: 324px;
+  }
+  .brand time {
+    display: none;
+  }
+  .topbar {
+    padding: 0 16px;
+  }
+  .date-cell {
+    padding-left: 16px;
+  }
+}

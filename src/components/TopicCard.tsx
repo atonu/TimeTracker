@@ -50,7 +50,8 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
     return () => document.removeEventListener("pointerdown", onDown);
   }, [toolsOpen]);
   const onCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
-    const onButton = (e.target as HTMLElement).closest("button");
+    // Buttons and the title don't toggle the tools (tapping the title just scrolls it)
+    const onButton = (e.target as HTMLElement).closest("button, .card-title");
     setToolsOpen(!onButton);
   };
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
@@ -159,9 +160,7 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
 
       <div className="card-head">
         <span className="badge" style={{ background: topic.color }} />
-        <span className="card-title" title={topic.title}>
-          {topic.title}
-        </span>
+        <ScrollTitle title={topic.title} />
         <div className="card-tools">
           <button className="icon-btn" onClick={onArchive} aria-label={`Archive ${topic.title}`} title="Archive">
             <BanIcon />
@@ -299,6 +298,44 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
         )}
       </div>
     </div>
+  );
+}
+
+/**
+ * A long title is cut with "…". Hover it (PC) and it scrolls like a news ticker until the cursor leaves.
+ * On a phone, tapping it scrolls it to the end and back once.
+ */
+function ScrollTitle({ title }: { title: string }) {
+  const box = useRef<HTMLSpanElement>(null);
+  const [run, setRun] = useState<{ shift: number; loop: boolean } | null>(null);
+
+  const start = (loop: boolean) => {
+    const b = box.current;
+    if (!b || run) return;
+    const shift = b.scrollWidth - b.clientWidth;
+    if (shift > 2) setRun({ shift, loop });
+  };
+  const stop = () => setRun((r) => (r?.loop ? null : r)); // a tap-started scroll finishes by itself
+
+  const seconds = run ? Math.max(2.2, run.shift / 28) : 0; // about 28 px per second, with a minimum
+
+  return (
+    <span
+      ref={box}
+      className={`card-title${run ? " scrolling" : ""}`}
+      title={title}
+      onPointerEnter={(e) => e.pointerType === "mouse" && start(true)}
+      onPointerLeave={(e) => e.pointerType === "mouse" && stop()}
+      onClick={() => start(false)}
+    >
+      <span
+        className="title-in"
+        style={run ? ({ "--shift": `-${run.shift}px`, "--title-time": `${seconds}s`, "--title-loops": run.loop ? "infinite" : 2 } as React.CSSProperties) : undefined}
+        onAnimationEnd={() => setRun(null)}
+      >
+        {title}
+      </span>
+    </span>
   );
 }
 

@@ -52,6 +52,32 @@ export default function HelpModal({ onClose, onTour }: { onClose: () => void; on
           </ol>
         </section>
 
+        <section>
+          <h3>Share and sync</h3>
+          <ol className="help-steps">
+            <li>
+              <b>Every room has its own link.</b> Your address, such as <code>tickwell…/AbC123…</code>, is your room.
+              Bookmark it or install the app, and you always come back to it.
+            </li>
+            <li>
+              <b>Press the share button</b> next to the theme button to see the link and a QR code.
+            </li>
+            <li>
+              <b>Copy the link</b> with the Copy button, or <b>scan the QR code</b> with your phone camera to open the
+              same room there.
+            </li>
+            <li>
+              <b>Everything stays in sync.</b> Start, pause, edit or archive on one device and the others update within
+              a second. The dot on the share button shows the state: green is synced, amber is connecting, red is
+              offline (your changes are kept and sent when you are back).
+            </li>
+            <li>
+              <b>There is no login.</b> Anyone with the link can see and change the room, so share it only with people
+              you trust.
+            </li>
+          </ol>
+        </section>
+
         <button className="btn-ghost help-tour" onClick={onTour}>
           Replay the welcome tour
         </button>

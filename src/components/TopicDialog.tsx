@@ -61,7 +61,7 @@ export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props)
           <input
             ref={titleRef}
             value={title}
-            maxLength={28}
+            maxLength={50}
             placeholder="e.g. Deep Work"
             onChange={(e) => setTitle(e.target.value)}
           />

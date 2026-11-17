@@ -4,14 +4,17 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { playBurst, playChime, stopSound, unlockAudio } from "@/lib/alarm";
 import { dayKey, fmtDuration, isRinging, keyToDate, shiftKey, type Topic } from "@/lib/tracker";
 import { useAppearance } from "@/lib/useAppearance";
-import { useTracker } from "@/lib/useTracker";
+import { useRouter } from "next/navigation";
+import { newRoomId } from "@/lib/room";
+import { LAST_ROOM_KEY, useTracker } from "@/lib/useTracker";
 import AppearancePanel from "./AppearancePanel";
 import HelpModal from "./HelpModal";
 import Onboarding from "./Onboarding";
 import ArchiveDialog from "./ArchiveDialog";
 import ColumnLabel from "./ColumnLabel";
 import ColumnsPanel from "./ColumnsPanel";
-import { AlarmIcon, ArchiveIcon, BrushIcon, CheckIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, LinkIcon, PlusIcon } from "./icons";
+import { AlarmIcon, ArchiveIcon, BrushIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, PlusIcon, ShareIcon } from "./icons";
+import ShareDialog from "./ShareDialog";
 import TopicCard, { EmptyCard } from "./TopicCard";
 import TopicDialog from "./TopicDialog";
 
@@ -30,6 +33,7 @@ type Modal =
   | { kind: "appearance" }
   | { kind: "columns" }
   | { kind: "help" }
+  | { kind: "share" }
   | null;
 
 export default function Tickwell({ roomId }: { roomId: string }) {
@@ -328,20 +332,25 @@ export default function Tickwell({ roomId }: { roomId: string }) {
 
   const close = useCallback(() => setModal(null), []);
 
-  // Anyone with the room link sees and edits the same data.
-  const [copied, setCopied] = useState(false);
-  const shareRoom = async () => {
-    const url = window.location.origin + "/" + roomId;
-    try {
-      if (navigator.share && window.matchMedia("(pointer: coarse)").matches) await navigator.share({ title: "Tickwell", url });
-      else await navigator.clipboard.writeText(url);
-    } catch {
-      return;
-    }
-    setCopied(true);
-    setTimeout(() => setCopied(false), 1800);
-  };
   const create = () => setModal({ kind: "topic", topic: null });
+
+  // "Create" in the header: a new topic here, or a brand-new room with its own link.
+  const router = useRouter();
+  const [createMenu, setCreateMenu] = useState<{ top: number; right: number } | null>(null);
+  useEffect(() => {
+    if (!createMenu) return;
+    const onKey = (e: KeyboardEvent) => e.key === "Escape" && setCreateMenu(null);
+    window.addEventListener("keydown", onKey);
+    return () => window.removeEventListener("keydown", onKey);
+  }, [createMenu]);
+  const createNewRoom = () => {
+    const id = newRoomId();
+    try {
+      localStorage.setItem(LAST_ROOM_KEY, id);
+    } catch {}
+    setCreateMenu(null);
+    router.push(`/${id}`);
+  };
 
   // Removing a card that is still on screen flies it away before the layout changes.
   const archiveTopic = (t: Topic) => (t.archivedAt ? archive(t.id) : crossfade(t.id, () => archive(t.id)));
@@ -415,21 +424,20 @@ export default function Tickwell({ roomId }: { roomId: string }) {
           </div>
           <div className="topbar-actions">
             <button
-              className={`btn-ghost icon-only share-btn sync-${status}`}
-              onClick={shareRoom}
-              aria-label="Copy the link to this room"
-              title={`${copied ? "Link copied" : "Copy room link"} · ${status === "live" ? "synced" : status === "offline" ? "offline, changes will sync later" : "connecting"}`}
-            >
-              {copied ? <CheckIcon size={16} /> : <LinkIcon />}
-              <span className="sync-dot" aria-hidden />
-            </button>
-            <button
               className="btn-ghost icon-only"
               onClick={() => setModal({ kind: "appearance" })}
               aria-label="Themes"
               title="Themes"
             >
               <BrushIcon />
+            </button>
+            <button
+              className="btn-ghost icon-only"
+              onClick={() => setModal({ kind: "share" })}
+              aria-label="Share this room"
+              title="Share"
+            >
+              <ShareIcon />
             </button>
             <button
               className="btn-ghost icon-only"
@@ -451,8 +459,17 @@ export default function Tickwell({ roomId }: { roomId: string }) {
               <ArchiveIcon /> <span className="btn-label">Archives</span>
               {archivedList.length > 0 && <span className="count">{archivedList.length}</span>}
             </button>
-            <button className="btn-primary" onClick={create}>
-              <PlusIcon size={16} /> <span className="btn-label">Create Topic</span>
+            <button
+              className="btn-primary"
+              onClick={(e) => {
+                const r = e.currentTarget.getBoundingClientRect();
+                setCreateMenu((m) => (m ? null : { top: r.bottom + 8, right: window.innerWidth - r.right }));
+              }}
+              aria-haspopup="menu"
+              aria-expanded={createMenu != null}
+              aria-label="Create"
+            >
+              <PlusIcon size={16} /> <span className="btn-label">Create</span>
             </button>
           </div>
         </header>
@@ -620,6 +637,38 @@ export default function Tickwell({ roomId }: { roomId: string }) {
           onShowAll={() => allColumns.filter((t) => t.hidden).forEach((t) => setHidden(t, false))}
           onClose={close}
         />
+      )}
+      {createMenu && (
+        <div className="menu-backdrop" onMouseDown={() => setCreateMenu(null)}>
+          <div
+            className="create-menu"
+            role="menu"
+            style={{ top: createMenu.top, right: createMenu.right }}
+            onMouseDown={(e) => e.stopPropagation()}
+          >
+            <button
+              role="menuitem"
+              onClick={() => {
+                setCreateMenu(null);
+                create();
+              }}
+            >
+              <PlusIcon size={14} />
+              <span>
+                Create Topic<small>Add a topic to this room</small>
+              </span>
+            </button>
+            <button role="menuitem" onClick={createNewRoom}>
+              <PlusIcon size={14} />
+              <span>
+                Create New<small>Start a fresh room with a new link</small>
+              </span>
+            </button>
+          </div>
+        </div>
+      )}
+      {modal?.kind === "share" && (
+        <ShareDialog url={`${window.location.origin}/${roomId}`} status={status} onClose={close} />
       )}
       {modal?.kind === "help" && (
         <HelpModal

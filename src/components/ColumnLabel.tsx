@@ -42,7 +42,7 @@ export default function ColumnLabel({ topic, onRename, onToggleHidden, onArchive
           className="label-input"
           autoFocus
           value={value}
-          maxLength={28}
+          maxLength={50}
           onChange={(e) => setValue(e.target.value)}
           onBlur={commit}
           onKeyDown={(e) => {

@@ -1954,3 +1954,154 @@ button.rem-custom-link:hover {
 .share-btn.sync-offline .sync-dot {
   background: #ef4444;
 }
+
+/* ---- Share dialog ---- */
+.dialog.share { width: min(420px, 100%); gap: 16px; }
+.share p { margin: 0; color: var(--muted); font-size: 14px; line-height: 1.55; }
+.share .share-warn { font-size: 12.5px; }
+.share-url { display: flex; gap: 8px; align-items: center; }
+.share-url input { flex: 1; min-width: 0; height: 42px; font-size: 13px; text-overflow: ellipsis; }
+.share-copy { height: 42px; min-width: 86px; display: inline-flex; align-items: center; justify-content: center; gap: 6px; white-space: nowrap; }
+.share-copy.done { background: #16a34a; border-color: #16a34a; color: #fff; }
+.share-qr { display: flex; flex-direction: column; align-items: center; gap: 10px; }
+.share-qr .qr {
+  width: 188px; height: 188px; padding: 12px; box-sizing: content-box;
+  background: #fff; border-radius: 14px; border: 1px solid var(--line);
+}
+.share-qr .qr svg { display: block; width: 100%; height: 100%; }
+.share-qr p { text-align: center; }
+.share-status { display: flex; align-items: center; gap: 8px; font-size: 12.5px; color: var(--muted); }
+.share-status .sync-dot { position: static; flex: none; width: 8px; height: 8px; box-shadow: none; background: #22c55e; border-radius: 50%; }
+.share-status .sync-connecting { background: #f59e0b; }
+.share-status .sync-offline { background: #ef4444; }
+.help code { font-size: 12.5px; padding: 1px 5px; border-radius: 6px; background: var(--soft); color: var(--ink); }
+
+/* ---- Card title ticker: a long title scrolls on hover (PC) or tap (phone) ---- */
+.card-title .title-in {
+  display: inline;
+}
+.card-title.scrolling {
+  text-overflow: clip;
+}
+.card-title.scrolling .title-in {
+  display: inline-block;
+  animation: title-scroll var(--title-time, 4s) ease-in-out var(--title-loops, infinite) alternate;
+}
+@keyframes title-scroll {
+  0%,
+  14% {
+    transform: translateX(0);
+  }
+  86%,
+  100% {
+    transform: translateX(var(--shift, 0));
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .card-title.scrolling .title-in {
+    animation: none;
+  }
+}
+
+/* ---- Share dialog: round copy icon after the link ---- */
+.share-copy {
+  flex: none;
+  width: 42px;
+  min-width: 42px;
+  height: 42px;
+  padding: 0;
+  display: grid;
+  place-items: center;
+  border: 0;
+  border-radius: 50%;
+  background: var(--ink);
+  color: var(--on-ink);
+  transition: background 0.2s, transform 0.15s;
+}
+.share-copy:hover {
+  transform: scale(1.06);
+}
+.share-copy.done {
+  background: #16a34a;
+  color: #fff;
+}
+
+/* Play / pause button: no default button padding, so the icon sits exactly in the middle */
+.play-btn {
+  padding: 0;
+}
+.play-btn svg {
+  display: block;
+  flex: none;
+}
+
+@media (max-width: 640px) {
+  /* a little breathing room above the header */
+  .topbar {
+    height: 64px;
+    padding: 8px 12px 0;
+  }
+  /* scrolled (phases 2 and 3): more space before the big time text */
+  .scroller[data-compact] .card-body {
+    padding-left: 6px;
+  }
+}
+@media (max-width: 640px) {
+  .scroller[data-compact] .topbar {
+    padding-top: 0; /* the header folds away completely */
+  }
+}
+
+/* ---- Header "Create" menu: Create Topic / Create New ---- */
+.menu-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+}
+.create-menu {
+  position: fixed;
+  min-width: 232px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: var(--shadow-md), 0 18px 40px rgba(0, 0, 0, 0.12);
+  animation: rise 0.16s ease-out;
+}
+.create-menu button {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  width: 100%;
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 11px;
+  background: transparent;
+  color: var(--ink);
+  text-align: left;
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.create-menu button:hover,
+.create-menu button:focus-visible {
+  background: var(--soft);
+  outline: none;
+}
+.create-menu button svg {
+  flex: none;
+}
+.create-menu button span {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+.create-menu button small {
+  font-size: 11.5px;
+  font-weight: 400;
+  color: var(--muted);
+}

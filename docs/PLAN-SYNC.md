@@ -165,7 +165,7 @@ Configuration:
 - `X-Robots-Tag: noindex` and `<meta name="robots" content="noindex">` on room pages. Add `Disallow` for `/` room paths is not possible by pattern, so rely on noindex plus unguessable IDs.
 - No endpoint lists rooms. Unknown IDs return 404 on `GET`, and rooms are created only by `POST /op` or `POST /api/rooms`.
 - Rate limit per IP (token bucket in memory): room creation (for example 10 per hour) and ops (for example 20 per second per room, 60 per second per IP). Behind Cloudflare, read the client IP from `CF-Connecting-IP`.
-- Limit request body to about 64 KB, validate every op with a schema (zod or hand-rolled), and clamp strings (title 28 chars) and numbers.
+- Limit request body to about 64 KB, validate every op with a schema (zod or hand-rolled), and clamp strings (title 50 chars) and numbers.
 - Cap SSE connections per room (for example 25) and per IP.
 - CORS: same-origin only.
 - Privacy note in the Help modal: "Anyone with this link can view and edit this room."

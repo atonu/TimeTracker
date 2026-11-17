@@ -143,3 +143,19 @@ export const LinkIcon = () => (
     <path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1" />
   </svg>
 );
+
+export const ShareIcon = () => (
+  <svg {...base} width={16} height={16}>
+    <circle cx="18" cy="5" r="2.6" />
+    <circle cx="6" cy="12" r="2.6" />
+    <circle cx="18" cy="19" r="2.6" />
+    <path d="M8.3 10.8l7.4-4.4M8.3 13.2l7.4 4.4" />
+  </svg>
+);
+
+export const CopyIcon = ({ size = 16 }: { size?: number }) => (
+  <svg {...base} width={size} height={size}>
+    <rect x="9" y="9" width="11" height="11" rx="2.5" />
+    <path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15" />
+  </svg>
+);

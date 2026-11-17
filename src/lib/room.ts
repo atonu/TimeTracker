@@ -54,7 +54,7 @@ export function sanitizeTopic(x: unknown, full = false): Topic | null {
   if (!x || typeof x !== "object") return null;
   const o = x as Record<string, unknown>;
   if (!isId(o.id)) return null;
-  const title = typeof o.title === "string" ? o.title.trim().slice(0, 28) : "";
+  const title = typeof o.title === "string" ? o.title.trim().slice(0, 50) : "";
   if (!title) return null;
   if (!isNum(o.goalMs, 60000, 24 * 3600e3)) return null;
   const t: Topic = {

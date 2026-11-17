@@ -11,5 +11,6 @@ export const metadata: Metadata = { robots: { index: false, follow: false } };
 export default async function RoomPage({ params }: Props) {
   const { id } = await params;
   if (!ROOM_ID_RE.test(id)) notFound();
-  return <Tickwell roomId={id} />;
+  // keyed so a different room starts with a clean slate
+  return <Tickwell key={id} roomId={id} />;
 }

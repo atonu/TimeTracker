@@ -1,13 +1,26 @@
 import type { Metadata, Viewport } from "next";
-import { Inter, Oswald } from "next/font/google";
+import localFont from "next/font/local";
 import PwaRegister from "@/components/PwaRegister";
 import { BRAND } from "@/lib/brand";
 import { splashStartupImages } from "@/lib/splash";
 import "./globals.css";
 import "./themes.css";
 
-const inter = Inter({ subsets: ["latin"], variable: "--font-sans" });
-const oswald = Oswald({ subsets: ["latin"], weight: ["500", "600"], variable: "--font-display" });
+// Fonts ship with the app (npm packages), so builds never need to reach Google Fonts.
+const inter = localFont({
+  src: "../../node_modules/@fontsource-variable/inter/files/inter-latin-wght-normal.woff2",
+  weight: "100 900",
+  variable: "--font-sans",
+  display: "swap",
+});
+const oswald = localFont({
+  src: [
+    { path: "../../node_modules/@fontsource/oswald/files/oswald-latin-500-normal.woff2", weight: "500", style: "normal" },
+    { path: "../../node_modules/@fontsource/oswald/files/oswald-latin-600-normal.woff2", weight: "600", style: "normal" },
+  ],
+  variable: "--font-display",
+  display: "swap",
+});
 
 const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
 const TITLE = `${BRAND.name} · ${BRAND.motto}`;

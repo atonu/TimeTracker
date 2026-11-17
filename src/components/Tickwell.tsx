@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { playBurst, playChime, stopSound, unlockAudio } from "@/lib/alarm";
-import { dayKey, fmtDuration, isRinging, startOfDay, type Topic } from "@/lib/tracker";
+import { dayKey, fmtDuration, isRinging, keyToDate, shiftKey, type Topic } from "@/lib/tracker";
 import { useAppearance } from "@/lib/useAppearance";
 import { useTracker } from "@/lib/useTracker";
 import AppearancePanel from "./AppearancePanel";
@@ -11,7 +11,7 @@ import Onboarding from "./Onboarding";
 import ArchiveDialog from "./ArchiveDialog";
 import ColumnLabel from "./ColumnLabel";
 import ColumnsPanel from "./ColumnsPanel";
-import { AlarmIcon, ArchiveIcon, BrushIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, PlusIcon } from "./icons";
+import { AlarmIcon, ArchiveIcon, BrushIcon, CheckIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, LinkIcon, PlusIcon } from "./icons";
 import TopicCard, { EmptyCard } from "./TopicCard";
 import TopicDialog from "./TopicDialog";
 
@@ -32,24 +32,26 @@ type Modal =
   | { kind: "help" }
   | null;
 
-export default function Tickwell() {
+export default function Tickwell({ roomId }: { roomId: string }) {
   const {
     topics,
     log,
     now,
     hydrated,
+    status,
     start,
     pause,
     startBreak,
     clearBreak,
     stopAlarms,
     save,
+    hide,
     archive,
     restore,
     remove,
     purgeHistory,
     loadDemo,
-  } = useTracker();
+  } = useTracker(roomId);
   const { theme, setTheme, bg, setBg } = useAppearance();
   const [modal, setModal] = useState<Modal>(null);
   const [leaving, setLeaving] = useState<Set<string>>(new Set());
@@ -309,18 +311,14 @@ export default function Tickwell() {
   const n = cols.length;
 
   const days = useMemo(() => {
+    // Days are calendar keys in the room's time zone, so everybody sees the same table.
     const keys = Object.keys(log).sort();
-    const earliest = keys.length ? new Date(keys[0] + "T00:00:00").getTime() : Infinity;
-    const floor = startOfDay(now) - (MIN_DAYS - 1) * 86400e3;
+    const floor = shiftKey(today, -(MIN_DAYS - 1));
+    const stop = keys.length && keys[0] < floor ? keys[0] : floor;
     const out: { key: string; date: Date }[] = [];
-    const d = new Date(startOfDay(now));
-    const stop = Math.min(earliest, floor);
-    while (d.getTime() >= stop) {
-      out.push({ key: dayKey(d.getTime()), date: new Date(d) });
-      d.setDate(d.getDate() - 1);
-    }
+    for (let key = today; key >= stop; key = shiftKey(key, -1)) out.push({ key, date: keyToDate(key) });
     return out;
-  }, [log, now]);
+  }, [log, today]);
 
   const totals = useMemo(() => {
     const t: Record<string, number> = {};
@@ -329,17 +327,31 @@ export default function Tickwell() {
   }, [log]);
 
   const close = useCallback(() => setModal(null), []);
+
+  // Anyone with the room link sees and edits the same data.
+  const [copied, setCopied] = useState(false);
+  const shareRoom = async () => {
+    const url = window.location.origin + "/" + roomId;
+    try {
+      if (navigator.share && window.matchMedia("(pointer: coarse)").matches) await navigator.share({ title: "Tickwell", url });
+      else await navigator.clipboard.writeText(url);
+    } catch {
+      return;
+    }
+    setCopied(true);
+    setTimeout(() => setCopied(false), 1800);
+  };
   const create = () => setModal({ kind: "topic", topic: null });
 
   // Removing a card that is still on screen flies it away before the layout changes.
   const archiveTopic = (t: Topic) => (t.archivedAt ? archive(t.id) : crossfade(t.id, () => archive(t.id)));
   const restoreTopic = (t: Topic) => crossfade(t.id, () => restore(t.id));
   const setHidden = (t: Topic, hidden: boolean) =>
-    hidden ? crossfade(t.id, () => save({ ...t, hidden: true })) : reveal(t.id, () => save({ ...t, hidden: false }));
+    hidden ? crossfade(t.id, () => hide(t.id, true)) : reveal(t.id, () => hide(t.id, false));
   const deleteTopic = (t: Topic) => (t.archivedAt ? remove(t.id) : flyAway(t.id, () => remove(t.id)));
 
   const dateLabel = (key: string, date: Date) => {
-    const yesterday = dayKey(now - 86400e3);
+    const yesterday = shiftKey(today, -1);
     const main =
       key === today
         ? "Today"
@@ -350,7 +362,7 @@ export default function Tickwell() {
       key === today || key === yesterday
         ? date.toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })
         : date.toLocaleDateString("en-GB", { weekday: "long" }) +
-          (date.getFullYear() !== new Date(now).getFullYear() ? ` · ${date.getFullYear()}` : "");
+          (date.getFullYear() !== Number(today.slice(0, 4)) ? ` · ${date.getFullYear()}` : "");
     return { main, sub };
   };
 
@@ -402,6 +414,15 @@ export default function Tickwell() {
             </time>
           </div>
           <div className="topbar-actions">
+            <button
+              className={`btn-ghost icon-only share-btn sync-${status}`}
+              onClick={shareRoom}
+              aria-label="Copy the link to this room"
+              title={`${copied ? "Link copied" : "Copy room link"} · ${status === "live" ? "synced" : status === "offline" ? "offline, changes will sync later" : "connecting"}`}
+            >
+              {copied ? <CheckIcon size={16} /> : <LinkIcon />}
+              <span className="sync-dot" aria-hidden />
+            </button>
             <button
               className="btn-ghost icon-only"
               onClick={() => setModal({ kind: "appearance" })}

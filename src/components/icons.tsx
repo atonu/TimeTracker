@@ -136,3 +136,10 @@ export const HelpIcon = () => (
     <path d="M9.4 9.4a2.7 2.7 0 0 1 5.2.9c0 1.8-2.6 2.3-2.6 3.9M12 17.2v.1" />
   </svg>
 );
+
+export const LinkIcon = () => (
+  <svg {...base} width={16} height={16}>
+    <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />
+    <path d="M14 10a4 4 0 0 0-5.7 0l-3 3A4 4 0 0 0 11 18.7l1-1" />
+  </svg>
+);

@@ -1932,3 +1932,25 @@ button.rem-custom-link:hover {
     font-size: 13px;
   }
 }
+
+/* ---- Share button with a live-sync dot ---- */
+.share-btn {
+  position: relative;
+}
+.share-btn .sync-dot {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #22c55e;
+  box-shadow: 0 0 0 2px var(--surface, #fff);
+  transition: background 0.3s;
+}
+.share-btn.sync-connecting .sync-dot {
+  background: #f59e0b;
+}
+.share-btn.sync-offline .sync-dot {
+  background: #ef4444;
+}

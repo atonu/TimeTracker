@@ -74,10 +74,12 @@ jobs:
           REGISTRY_USER: ${{ github.actor }}
           REGISTRY_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           HOST_PORT: ${{ vars.HOST_PORT || '3000' }}
+          MONGODB_URI: ${{ secrets.MONGODB_URI }}
+          MONGODB_DB: ${{ vars.MONGODB_DB }}
         run: |
           ssh -i ~/.ssh/id_deploy -p "${{ secrets.SSH_PORT || 22 }}" \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "IMAGE_REF='$IMAGE_REF' REGISTRY_USER='$REGISTRY_USER' REGISTRY_TOKEN='$REGISTRY_TOKEN' HOST_PORT='$HOST_PORT' CONTAINER='${{ env.CONTAINER }}' bash -s" <<'REMOTE'
+            "IMAGE_REF='$IMAGE_REF' REGISTRY_USER='$REGISTRY_USER' REGISTRY_TOKEN='$REGISTRY_TOKEN' HOST_PORT='$HOST_PORT' MONGODB_URI='$MONGODB_URI' MONGODB_DB='$MONGODB_DB' CONTAINER='${{ env.CONTAINER }}' bash -s" <<'REMOTE'
           set -euo pipefail
           echo "$REGISTRY_TOKEN" | docker login ghcr.io -u "$REGISTRY_USER" --password-stdin
           docker pull "$IMAGE_REF"

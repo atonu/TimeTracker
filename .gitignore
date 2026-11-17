@@ -3,3 +3,9 @@ node_modules
 next-env.d.ts
 *.tsbuildinfo
 /keys
+
+.data
+
+.env
+.env.*
+!.env.example

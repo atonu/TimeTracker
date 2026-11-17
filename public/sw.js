@@ -1,6 +1,6 @@
 // Tickwell service worker: makes the app open instantly and work offline.
-// All data lives in the browser (localStorage), so caching the app shell is enough.
-const CACHE = "tickwell-v1";
+// Room data comes live from the server (and is kept in localStorage for offline), so only the app shell is cached.
+const CACHE = "tickwell-v2";
 const SHELL = ["/", "/manifest.webmanifest", "/pwa/icon/192", "/pwa/icon/512"];
 
 self.addEventListener("install", (event) => {
@@ -21,6 +21,7 @@ self.addEventListener("fetch", (event) => {
   if (req.method !== "GET") return;
   const url = new URL(req.url);
   if (url.origin !== self.location.origin) return;
+  if (url.pathname.startsWith("/api/")) return; // live room data is never cached
 
   // Pages: network first, fall back to the cached shell when offline.
   if (req.mode === "navigate") {
@@ -28,10 +29,10 @@ self.addEventListener("fetch", (event) => {
       fetch(req)
         .then((res) => {
           const copy = res.clone();
-          caches.open(CACHE).then((c) => c.put("/", copy));
+          caches.open(CACHE).then((c) => c.put(url.pathname === "/" ? "/" : req, copy));
           return res;
         })
-        .catch(() => caches.match("/")),
+        .catch(() => caches.match(req).then((hit) => hit || caches.match("/"))),
     );
     return;
   }

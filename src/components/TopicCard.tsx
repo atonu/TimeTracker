@@ -302,35 +302,32 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
 }
 
 /**
- * A long title is cut with "…". Hover it (PC) and it scrolls like a news ticker until the cursor leaves.
- * On a phone, tapping it scrolls it to the end and back once.
+ * Hover the title (PC) or tap it (phone) and it runs once from right to left across the card,
+ * like a news ticker, then settles back in place.
  */
 function ScrollTitle({ title }: { title: string }) {
   const box = useRef<HTMLSpanElement>(null);
-  const [run, setRun] = useState<{ shift: number; loop: boolean } | null>(null);
+  const [run, setRun] = useState<{ from: number; to: number; secs: number } | null>(null);
 
-  const start = (loop: boolean) => {
+  const start = () => {
     const b = box.current;
-    if (!b || run) return;
-    const shift = b.scrollWidth - b.clientWidth;
-    if (shift > 2) setRun({ shift, loop });
+    if (!b || run || window.matchMedia("(prefers-reduced-motion: reduce)").matches) return;
+    const from = b.clientWidth; // starts just outside the right edge
+    const to = -Math.max(b.scrollWidth, b.clientWidth); // ends just outside the left edge
+    setRun({ from, to, secs: Math.max(3, (from - to) / 70) }); // about 70 px per second
   };
-  const stop = () => setRun((r) => (r?.loop ? null : r)); // a tap-started scroll finishes by itself
-
-  const seconds = run ? Math.max(2.2, run.shift / 28) : 0; // about 28 px per second, with a minimum
 
   return (
     <span
       ref={box}
       className={`card-title${run ? " scrolling" : ""}`}
       title={title}
-      onPointerEnter={(e) => e.pointerType === "mouse" && start(true)}
-      onPointerLeave={(e) => e.pointerType === "mouse" && stop()}
-      onClick={() => start(false)}
+      onPointerEnter={(e) => e.pointerType === "mouse" && start()}
+      onClick={start}
     >
       <span
         className="title-in"
-        style={run ? ({ "--shift": `-${run.shift}px`, "--title-time": `${seconds}s`, "--title-loops": run.loop ? "infinite" : 2 } as React.CSSProperties) : undefined}
+        style={run ? ({ "--from": `${run.from}px`, "--to": `${run.to}px`, "--title-time": `${run.secs}s` } as React.CSSProperties) : undefined}
         onAnimationEnd={() => setRun(null)}
       >
         {title}

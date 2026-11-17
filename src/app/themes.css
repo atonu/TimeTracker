@@ -1976,7 +1976,7 @@ button.rem-custom-link:hover {
 .share-status .sync-offline { background: #ef4444; }
 .help code { font-size: 12.5px; padding: 1px 5px; border-radius: 6px; background: var(--soft); color: var(--ink); }
 
-/* ---- Card title ticker: a long title scrolls on hover (PC) or tap (phone) ---- */
+/* ---- Card title ticker: runs once, right to left, on hover (PC) or tap (phone) ---- */
 .card-title .title-in {
   display: inline;
 }
@@ -1985,21 +1985,14 @@ button.rem-custom-link:hover {
 }
 .card-title.scrolling .title-in {
   display: inline-block;
-  animation: title-scroll var(--title-time, 4s) ease-in-out var(--title-loops, infinite) alternate;
+  animation: title-scroll var(--title-time, 5s) linear 1 forwards;
 }
 @keyframes title-scroll {
-  0%,
-  14% {
-    transform: translateX(0);
+  from {
+    transform: translateX(var(--from, 100%));
   }
-  86%,
-  100% {
-    transform: translateX(var(--shift, 0));
-  }
-}
-@media (prefers-reduced-motion: reduce) {
-  .card-title.scrolling .title-in {
-    animation: none;
+  to {
+    transform: translateX(var(--to, -100%));
   }
 }
 
@@ -2104,4 +2097,39 @@ button.rem-custom-link:hover {
   font-size: 11.5px;
   font-weight: 400;
   color: var(--muted);
+}
+
+/* ---- Cards at their smallest, desktop: title on top, countdown below it ---- */
+.scroller[data-tiny] {
+  --row-h: calc(20dvh - 32px);
+  --card-h: clamp(120px, calc(20dvh - 58px), 142px);
+  --time: calc(var(--card-h) * 0.36);
+}
+@media (max-width: 640px) {
+  .scroller[data-tiny] {
+    --row-h: calc(20dvh - 38px);
+    --card-h: clamp(88px, calc(20dvh - 70px), 120px);
+    --time: 17px;
+  }
+}
+@media (min-width: 641px) {
+  .scroller[data-tiny] .card-head {
+    top: 14px;
+    left: 30px;
+    right: 30px;
+    width: auto;
+    height: 24px;
+    transform: none;
+  }
+  .scroller[data-tiny] .card-tools {
+    position: static;
+    width: auto;
+    margin: 0 0 0 auto;
+  }
+  .scroller[data-tiny] .card-body {
+    padding-top: 28px; /* makes room for the title above */
+  }
+  .scroller[data-tiny] .play-wrap {
+    top: calc(50% + 14px);
+  }
 }

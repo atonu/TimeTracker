@@ -116,6 +116,20 @@ export const CheckIcon = ({ size = 13 }: { size?: number }) => (
   </svg>
 );
 
+/** Four corner arrows pointing outwards: "expand". */
+export const ExpandIcon = () => (
+  <svg {...base} width={16} height={16}>
+    <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+  </svg>
+);
+
+/** Four corner arrows pointing inwards: "collapse". */
+export const CollapseIcon = () => (
+  <svg {...base} width={16} height={16}>
+    <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+  </svg>
+);
+
 export const HelpIcon = () => (
   <svg {...base} width={16} height={16}>
     <circle cx="12" cy="12" r="9" />

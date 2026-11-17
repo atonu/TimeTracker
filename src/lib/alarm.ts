@@ -78,6 +78,19 @@ export function playBurst(seconds = 10): boolean {
   return true;
 }
 
+/** One soft arpeggio for a finished goal. Separate from the break alarm, so stopping an alarm never cuts it off. */
+export function playChime(): boolean {
+  if (!ctx || ctx.state !== "running") return false;
+  const c = ctx;
+  const out = c.createGain();
+  out.gain.value = 0.5;
+  out.connect(c.destination);
+  const t0 = c.currentTime + 0.05;
+  NOTES.forEach((f, i) => tone(c, out, f, t0 + i * 0.22));
+  setTimeout(() => out.disconnect(), 4000);
+  return true;
+}
+
 export function stopSound() {
   if (endTimer) clearTimeout(endTimer);
   endTimer = null;

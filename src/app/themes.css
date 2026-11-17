@@ -858,9 +858,10 @@
   }
 
   .scroller {
-    --row-h: max(210px, calc(50dvh - 56px));
-    --card-h: 168px;
-    --time: 27px;
+    /* 80% of the window for the cards; 56px topbar + 38px label row come off that */
+    --row-h: max(260px, calc(80dvh - 94px));
+    --card-h: clamp(130px, calc(80dvh - 260px), 200px);
+    --time: 23px;
     --foot: 18px;
     --btn: 32px;
     --btn-edge: 11px;
@@ -1266,14 +1267,23 @@
 }
 
 /* ---------- Custom reminder (mm : ss) ---------- */
-button.rem-title {
+.rem-title {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+button.rem-custom-link {
   padding: 0;
   border: 0;
   background: none;
-  font-family: inherit;
+  font: inherit;
+  font-size: 11px;
+  font-style: italic;
+  font-weight: 400;
+  color: var(--muted);
   cursor: pointer;
 }
-button.rem-title:hover {
+button.rem-custom-link:hover {
   color: #ea6a0a;
   text-decoration: underline;
   text-underline-offset: 3px;
@@ -1547,4 +1557,72 @@ button.rem-title:hover {
 }
 .select-all:hover {
   color: var(--ink);
+}
+
+/* Goal reached: the text lights up green, then fades back to its normal colour */
+.meta.goal {
+  animation: goal-flash 2.4s ease-out both;
+}
+@keyframes goal-flash {
+  0%,
+  15% {
+    color: #22c55e;
+    font-weight: 600;
+  }
+  100% {
+    color: var(--muted);
+    font-weight: 400;
+  }
+}
+
+/* ---------- Dense view toggle (PC only) ---------- */
+/* zero-height row above the cards: the button sits in the right-hand corner */
+.dense-rail {
+  position: relative;
+  height: 0;
+  z-index: 2;
+}
+.dense-toggle {
+  position: absolute;
+  top: 8px;
+  right: 28px;
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  padding: 0;
+  border: 1px solid var(--line);
+  border-radius: 50%;
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.06);
+  cursor: pointer;
+  transition: background 0.15s;
+}
+.dense-toggle:hover {
+  background: var(--soft);
+}
+.dense-toggle[aria-pressed="true"] {
+  background: var(--ink);
+  color: var(--on-ink);
+}
+@media (max-width: 640px) {
+  .dense-toggle {
+    display: none;
+  }
+}
+
+/* Dense sizes. Only applies when the expanded view is showing (compact keeps its own sizes). */
+.scroller[data-dense]:not([data-compact]) {
+  --date-w: 120px;
+  --col-w: 320px;
+  --card-w: 300px;
+  --card-h: 170px;
+  --time: calc(var(--card-h) * 0.3);
+  --foot: 26px;
+  --btn: 36px;
+  --btn-edge: 20px;
+}
+.scroller[data-dense]:not([data-compact]) .card {
+  padding: 20px;
 }

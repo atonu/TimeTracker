@@ -18,12 +18,13 @@ type Props = {
   spentMs: number;
   onToggle: () => void;
   onEdit: () => void;
+  onCreate: () => void;
   onArchive: () => void;
   onSetBreak: (ms: number) => void;
   onStopAlarm: () => void;
 };
 
-export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onArchive, onSetBreak, onStopAlarm }: Props) {
+export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCreate, onArchive, onSetBreak, onStopAlarm }: Props) {
   const running = topic.startedAt != null;
   const progress = topic.goalMs > 0 ? spentMs / topic.goalMs : 0;
   const done = progress >= 1;
@@ -151,6 +152,9 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onArc
           <button className="icon-btn" onClick={onEdit} aria-label={`Edit ${topic.title}`} title="Edit">
             <PencilIcon />
           </button>
+          <button className="icon-btn" onClick={onCreate} aria-label="Create topic" title="Create topic">
+            <PlusIcon size={13} />
+          </button>
         </div>
       </div>
 
@@ -162,7 +166,7 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onArc
       </div>
 
       <div className="card-foot">
-        <span className={`meta${pending ? " break" : ""}`}>
+        <span className={`meta${pending ? " break" : ""}${done && !ringing && !pending ? " goal" : ""}`}>
           {ringing ? (
             <>
               <span className="ring-icon">
@@ -222,9 +226,12 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onArc
             </div>
           ) : (
             <>
-              <button className="rem-title" onClick={openCustom} title="Set a custom time">
-                Set reminder?
-              </button>
+              <div className="rem-title">
+                <span>Set reminder?</span>
+                <button className="rem-custom-link" onClick={openCustom} title="Set a custom time">
+                  Custom
+                </button>
+              </div>
               <div className="rem-opts">
                 {BREAK_OPTIONS.map((m) => (
                   <button key={m} onClick={() => pickBreak(m)} aria-label={`Remind me in ${m} ${BREAK_UNIT.label}`}>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { playBurst, stopSound, unlockAudio } from "@/lib/alarm";
+import { playBurst, playChime, stopSound, unlockAudio } from "@/lib/alarm";
 import { dayKey, fmtDuration, isRinging, startOfDay, type Topic } from "@/lib/tracker";
 import { useAppearance } from "@/lib/useAppearance";
 import { useTracker } from "@/lib/useTracker";
@@ -11,7 +11,7 @@ import Onboarding from "./Onboarding";
 import ArchiveDialog from "./ArchiveDialog";
 import ColumnLabel from "./ColumnLabel";
 import ColumnsPanel from "./ColumnsPanel";
-import { AlarmIcon, ArchiveIcon, BrushIcon, EyeIcon, HelpIcon, PlusIcon } from "./icons";
+import { AlarmIcon, ArchiveIcon, BrushIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, PlusIcon } from "./icons";
 import TopicCard, { EmptyCard } from "./TopicCard";
 import TopicDialog from "./TopicDialog";
 
@@ -68,6 +68,21 @@ export default function Tickwell() {
     } catch {}
   }, []);
   const scroller = useRef<HTMLDivElement>(null);
+
+  // Dense view (PC only): smaller cards, columns and text. Remembered per browser.
+  const [dense, setDense] = useState(false);
+  useEffect(() => {
+    try {
+      setDense(localStorage.getItem("timetracker:dense") === "1");
+    } catch {}
+  }, []);
+  const toggleDense = () => {
+    const next = !dense;
+    setDense(next);
+    try {
+      localStorage.setItem("timetracker:dense", next ? "1" : "0");
+    } catch {}
+  };
 
   // Floating eye button above the table: shows on hover, stays 5 s, resets on interaction.
   const [eyeOn, setEyeOn] = useState(false);
@@ -128,6 +143,20 @@ export default function Tickwell() {
       }
     }
   }, [now, topics]);
+
+  // Goal reached: play a soft chime once, the moment a topic's time for today runs out.
+  // The first load only records what is already done, so opening the app stays silent.
+  const doneBefore = useRef<Set<string> | null>(null);
+  useEffect(() => {
+    const key = dayKey(now);
+    const doneNow = new Set(
+      topics.filter((t) => !t.archivedAt && (log[key]?.[t.id] ?? 0) >= t.goalMs && t.goalMs > 0).map((t) => t.id),
+    );
+    if (doneBefore.current) {
+      for (const id of doneNow) if (!doneBefore.current.has(id)) playChime();
+    }
+    doneBefore.current = doneNow;
+  }, [log, topics, now]);
 
   const ringingCount = topics.filter((t) => isRinging(t, now)).length;
   const stopAll = () => {
@@ -243,7 +272,7 @@ export default function Tickwell() {
     <>
       <div className={`bg-art art-${bg}`} aria-hidden />
 
-      <div className="scroller" ref={scroller}>
+      <div className="scroller" ref={scroller} data-dense={dense ? "" : undefined}>
         <header className="topbar">
           <div className="brand">
             <span className="brand-dot" />
@@ -299,6 +328,18 @@ export default function Tickwell() {
           <div className="board" style={{ ["--n" as string]: Math.max(n, 1) }}>
             {/* Sticky block: the timer cards and the column labels */}
             <div className="sticky-top">
+              {/* Right-most button on a row just above the cards */}
+              <div className="dense-rail">
+                <button
+                  className="dense-toggle"
+                  onClick={toggleDense}
+                  aria-pressed={dense}
+                  aria-label={dense ? "Normal size" : "Compact size"}
+                  title={dense ? "Normal size" : "Compact size"}
+                >
+                  {dense ? <CollapseIcon /> : <ExpandIcon />}
+                </button>
+              </div>
               <div className="grid cards-row">
                 <div className="corner" />
                 <div />
@@ -320,6 +361,7 @@ export default function Tickwell() {
                         }}
                         onToggle={() => (t.startedAt != null ? pause(t.id) : start(t.id))}
                         onEdit={() => setModal({ kind: "topic", topic: t })}
+                        onCreate={create}
                         onArchive={() => archiveTopic(t)}
                       />
                     </div>

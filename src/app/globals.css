@@ -8,7 +8,7 @@
   --line: #e8e8eb;
   --tint: #f8f8f9;
 
-  --card-w: 420px;
+  --card-w: 390px;
   --col-w: 448px;
   --date-w: 156px;
   --radius: 30px;
@@ -43,9 +43,10 @@ button {
 /* ───────── Scroll container (scrolls both ways) ───────── */
 
 .scroller {
-  /* Expanded: the card row fills roughly the top half of the screen. */
-  --row-h: max(300px, calc(50dvh - 76px)); /* cards area = top half of the screen */
-  --card-h: clamp(190px, calc(50dvh - 150px), 250px);
+  /* Expanded: the card row fills 80% of the window; the table gets the bottom 20%.
+     76px topbar + 52px column-label row are subtracted from the 80%. */
+  --row-h: max(260px, calc(80dvh - 128px));
+  --card-h: clamp(170px, calc(80dvh - 330px), 230px);
   --time: calc(var(--card-h) * 0.36);
   --foot: 34px;
   --btn: 48px;
@@ -780,7 +781,7 @@ input:focus-visible {
 @media (max-width: 640px) {
   :root {
     --date-w: 116px;
-    --card-w: 300px;
+    --card-w: 280px;
     --col-w: 324px;
   }
   .brand time {

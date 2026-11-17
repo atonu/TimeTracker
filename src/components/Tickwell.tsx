@@ -18,7 +18,7 @@ import TopicDialog from "./TopicDialog";
 const MIN_DAYS = 14;
 // Two thresholds (hysteresis) so the layout can never flip back and forth while scrolling.
 const COMPACT_AFTER = 30;
-const EXPAND_BELOW = 5;
+const TINY_AFTER = 260; // scroll distance of the whole phase: cards go from 85% to 20%
 const FLY_MS = 320;
 const FADE_MS = 260; // cross-fade out
 const ENTER_MS = 400; // cross-fade in
@@ -68,6 +68,8 @@ export default function Tickwell() {
     } catch {}
   }, []);
   const scroller = useRef<HTMLDivElement>(null);
+  const sheetScroll = useRef<HTMLDivElement>(null);
+  const block = useRef<HTMLDivElement>(null);
 
   // Dense view (PC only): smaller cards, columns and text. Remembered per browser.
   const [dense, setDense] = useState(false);
@@ -99,19 +101,105 @@ export default function Tickwell() {
     if (eyeTimer.current) clearTimeout(eyeTimer.current);
   }, []);
 
-  // Cards are either fully expanded or compact; CSS animates between the two.
+  // Page controller. The page does not scroll by itself: wheel, touch and keys are read here.
+  // While the cards are shrinking (phases 1 to 3) the history stays still. Only once the cards
+  // reach their smallest size (phase 3) does further scrolling move the history rows.
+  const phase = useRef(0); // 0 (top) .. TINY_AFTER (cards at 20%)
   useEffect(() => {
     const el = scroller.current;
-    if (!el) return;
-    const update = () => {
-      const compact = el.hasAttribute("data-compact");
-      if (!compact && el.scrollTop > COMPACT_AFTER) el.setAttribute("data-compact", "");
-      else if (compact && el.scrollTop < EXPAND_BELOW) el.removeAttribute("data-compact");
+    const sheet = sheetScroll.current;
+    if (!el || !sheet) return;
+
+    const applyPhase = () => {
+      const p = phase.current;
+      if (p >= COMPACT_AFTER) el.setAttribute("data-compact", "");
+      else el.removeAttribute("data-compact");
+      if (p >= TINY_AFTER) el.setAttribute("data-tiny", "");
+      else el.removeAttribute("data-tiny");
     };
-    update();
-    el.addEventListener("scroll", update, { passive: true });
-    return () => el.removeEventListener("scroll", update);
-  }, []);
+
+    const move = (dy: number, dx: number) => {
+      if (dx) {
+        sheet.scrollLeft += dx;
+        if (block.current) block.current.scrollLeft = sheet.scrollLeft; // cards line up with the columns
+      }
+      if (dy > 0) {
+        if (phase.current < TINY_AFTER) {
+          phase.current = Math.min(TINY_AFTER, phase.current + dy);
+          applyPhase();
+        } else {
+          sheet.scrollTop += dy;
+        }
+      } else if (dy < 0) {
+        if (sheet.scrollTop > 0) {
+          sheet.scrollTop += dy; // the history goes back first
+        } else {
+          phase.current = Math.max(0, phase.current + dy);
+          applyPhase();
+        }
+      }
+    };
+
+    const onWheel = (e: WheelEvent) => {
+      if (e.ctrlKey) return; // pinch-zoom keeps working
+      e.preventDefault();
+      const k = e.deltaMode === 1 ? 16 : e.deltaMode === 2 ? el.clientHeight : 1;
+      if (e.shiftKey) {
+        // Shift + wheel means sideways. Windows reports it on deltaY, so use whichever axis moved.
+        const d = Math.abs(e.deltaX) > Math.abs(e.deltaY) ? e.deltaX : e.deltaY;
+        move(0, d * k);
+        return;
+      }
+      move(e.deltaY * k, e.deltaX * k);
+    };
+
+    let tx = 0;
+    let ty = 0;
+    const onTouchStart = (e: TouchEvent) => {
+      tx = e.touches[0].clientX;
+      ty = e.touches[0].clientY;
+    };
+    const onTouchMove = (e: TouchEvent) => {
+      e.preventDefault();
+      const x = e.touches[0].clientX;
+      const y = e.touches[0].clientY;
+      move(ty - y, tx - x); // a finger moving up scrolls down
+      tx = x;
+      ty = y;
+    };
+
+    const onKey = (e: KeyboardEvent) => {
+      const t = e.target as HTMLElement;
+      if (t.closest("input, textarea, select, [contenteditable]")) return;
+      const step = el.clientHeight * 0.6;
+      if (e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") move(step, 0);
+      else if (e.key === "ArrowUp" || e.key === "PageUp") move(-step, 0);
+      else if (e.key === "ArrowRight") move(0, 60);
+      else if (e.key === "ArrowLeft") move(0, -60);
+      else return;
+      e.preventDefault();
+    };
+
+    // The history has its own scrollbars. Before phase 3 the table must not move, so a dragged
+    // scrollbar is held at the top; the cards line up with the columns sideways.
+    const onSheetScroll = () => {
+      if (phase.current < TINY_AFTER && sheet.scrollTop > 0) sheet.scrollTop = 0;
+      if (block.current) block.current.scrollLeft = sheet.scrollLeft;
+    };
+    sheet.addEventListener("scroll", onSheetScroll, { passive: true });
+    el.addEventListener("wheel", onWheel, { passive: false });
+    el.addEventListener("touchstart", onTouchStart, { passive: true });
+    el.addEventListener("touchmove", onTouchMove, { passive: false });
+    window.addEventListener("keydown", onKey);
+    applyPhase();
+    return () => {
+      sheet.removeEventListener("scroll", onSheetScroll);
+      el.removeEventListener("wheel", onWheel);
+      el.removeEventListener("touchstart", onTouchStart);
+      el.removeEventListener("touchmove", onTouchMove);
+      window.removeEventListener("keydown", onKey);
+    };
+  }, [hydrated]);
 
   // Browsers only allow sound after a gesture: unlock audio on the first interaction.
   useEffect(() => {
@@ -265,6 +353,37 @@ export default function Tickwell() {
     return { main, sub };
   };
 
+  /** One day of the history table. */
+  const dayRow = ({ key, date }: { key: string; date: Date }) => {
+    const { main, sub } = dateLabel(key, date);
+    return (
+      <div className={`grid row${key === today ? " today" : ""}`} key={key}>
+        <div className="date-cell">
+          <b>{main}</b>
+          <small>{sub}</small>
+        </div>
+        <div />
+        {n === 0 ? (
+          <div className="cell dim first last">—</div>
+        ) : (
+          cols.map((t, i) => {
+            const ms = log[key]?.[t.id] ?? 0;
+            const dim = Math.round(ms / 60000) <= 0;
+            return (
+              <div
+                className={`cell${edge(i)}${dim ? " dim" : ""}${t.archivedAt ? " archived" : ""}${fx(t.id)}`}
+                key={t.id}
+              >
+                {t.hidden ? "" : fmtDuration(ms)}
+              </div>
+            );
+          })
+        )}
+        <div />
+      </div>
+    );
+  };
+
   /** first / last data column get no outer border */
   const edge = (i: number) => (i === 0 ? " first" : "") + (i === n - 1 ? " last" : "");
 
@@ -327,19 +446,7 @@ export default function Tickwell() {
         {hydrated && (
           <div className="board" style={{ ["--n" as string]: Math.max(n, 1) }}>
             {/* Sticky block: the timer cards and the column labels */}
-            <div className="sticky-top">
-              {/* Right-most button on a row just above the cards */}
-              <div className="dense-rail">
-                <button
-                  className="dense-toggle"
-                  onClick={toggleDense}
-                  aria-pressed={dense}
-                  aria-label={dense ? "Normal size" : "Compact size"}
-                  title={dense ? "Normal size" : "Compact size"}
-                >
-                  {dense ? <CollapseIcon /> : <ExpandIcon />}
-                </button>
-              </div>
+            <div className="sticky-top" ref={block}>
               <div className="grid cards-row">
                 <div className="corner" />
                 <div />
@@ -420,57 +527,45 @@ export default function Tickwell() {
               </div>
             </div>
 
-            {/* History */}
-            <div className="sheet">
-              {n > 0 && (
-                <div className="grid row total-row">
-                  <div className="date-cell">
-                    <b>All time</b>
-                    <small>Total hours</small>
-                  </div>
-                  <div />
-                  {cols.map((t, i) => (
-                    <div className={`cell${edge(i)}${t.archivedAt ? " archived" : ""}${fx(t.id)}`} key={t.id}>
-                      {t.hidden ? "" : fmtDuration(totals[t.id] ?? 0)}
-                    </div>
-                  ))}
-                  <div />
-                </div>
-              )}
-
-              {days.map(({ key, date }) => {
-                const { main, sub } = dateLabel(key, date);
-                return (
-                  <div className={`grid row${key === today ? " today" : ""}`} key={key}>
+            {/* History: scrolled by the page controller, not the browser */}
+            <div className="sheet-scroll" ref={sheetScroll}>
+              <div className="sheet">
+                {n > 0 && (
+                  <div className="grid row total-row">
                     <div className="date-cell">
-                      <b>{main}</b>
-                      <small>{sub}</small>
+                      <b>All time</b>
+                      <small>Total hours</small>
                     </div>
                     <div />
-                    {n === 0 ? (
-                      <div className="cell dim first last">—</div>
-                    ) : (
-                      cols.map((t, i) => {
-                        const ms = log[key]?.[t.id] ?? 0;
-                        const dim = Math.round(ms / 60000) <= 0;
-                        return (
-                          <div
-                            className={`cell${edge(i)}${dim ? " dim" : ""}${t.archivedAt ? " archived" : ""}${fx(t.id)}`}
-                            key={t.id}
-                          >
-                            {t.hidden ? "" : fmtDuration(ms)}
-                          </div>
-                        );
-                      })
-                    )}
+                    {cols.map((t, i) => (
+                      <div className={`cell${edge(i)}${t.archivedAt ? " archived" : ""}${fx(t.id)}`} key={t.id}>
+                        {t.hidden ? "" : fmtDuration(totals[t.id] ?? 0)}
+                      </div>
+                    ))}
                     <div />
                   </div>
-                );
-              })}
+                )}
+                {days.map(dayRow)}
+              </div>
             </div>
           </div>
         )}
       </div>
+
+      {/* Fixed to the screen, outside the scroller, so it never moves with the layout */}
+      {hydrated && (
+        <div className="dense-rail-fixed">
+                <button
+                  className="dense-toggle"
+                  onClick={toggleDense}
+                  aria-pressed={dense}
+                  aria-label={dense ? "Normal size" : "Compact size"}
+                  title={dense ? "Normal size" : "Compact size"}
+                >
+                  {dense ? <CollapseIcon /> : <ExpandIcon />}
+                </button>
+        </div>
+      )}
 
       {/* Outside the scroller: fixed positioning must not be trapped by its containment */}
       {modal?.kind === "topic" && (

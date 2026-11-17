@@ -9,7 +9,7 @@
   --tint: #f8f8f9;
 
   --card-w: 390px;
-  --col-w: 448px;
+  --col-w: calc(var(--card-w) + 16px); /* column pitch = card + 16px gap */
   --date-w: 156px;
   --radius: 30px;
   --ease: cubic-bezier(0.4, 0, 0.2, 1);
@@ -43,9 +43,9 @@ button {
 /* ───────── Scroll container (scrolls both ways) ───────── */
 
 .scroller {
-  /* Expanded: the card row fills 80% of the window; the table gets the bottom 20%.
-     76px topbar + 52px column-label row are subtracted from the 80%. */
-  --row-h: max(260px, calc(80dvh - 128px));
+  /* Expanded: the card row fills 85% of the window; the table gets the bottom 15%.
+     76px topbar + 52px column-label row are subtracted from the 85%. */
+  --row-h: max(260px, calc(85dvh - 128px));
   --card-h: clamp(170px, calc(80dvh - 330px), 230px);
   --time: calc(var(--card-h) * 0.36);
   --foot: 34px;
@@ -54,16 +54,18 @@ button {
   --gap: 0px;
 
   height: 100dvh;
-  overflow: auto;
-  overflow-anchor: none; /* anchoring fights the animated height change */
+  overflow: hidden; /* the page controller moves the content, not the browser */
+  display: flex;
+  flex-direction: column;
   container-type: inline-size;
   scrollbar-width: thin;
   scrollbar-color: var(--faint) transparent;
 }
+/* Scrolled a bit: the cards block (cards + column labels) takes 40% of the window, the table the rest. */
 .scroller[data-compact] {
-  --row-h: 148px;
-  --card-h: 124px;
-  --time: 44px;
+  --row-h: calc(40dvh - 52px);
+  --card-h: clamp(124px, calc(40dvh - 110px), 220px);
+  --time: calc(var(--card-h) * 0.36);
   --foot: 0px;
   --btn: 34px;
   --btn-edge: 26px;
@@ -71,7 +73,9 @@ button {
 }
 
 .topbar {
-  position: sticky;
+  position: relative;
+  flex: none;
+  overflow: hidden;
   left: 0;
   width: 100cqw;
   height: 76px;
@@ -110,8 +114,12 @@ button {
 /* ───────── Grid shared by cards, labels and every table row ───────── */
 
 .board {
-  width: max-content;
-  min-width: 100%;
+  width: 100%;
+  flex: 1 1 auto;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  overflow: hidden;
 }
 
 .grid {
@@ -122,8 +130,10 @@ button {
 /* ───────── Sticky block ───────── */
 
 .sticky-top {
-  position: sticky;
-  top: 0;
+  position: relative;
+  flex: none;
+  width: 100%;
+  overflow: hidden; /* the cards line up with the table through a mirrored scroll */
   z-index: 30;
   background: var(--bg);
   transition: box-shadow var(--dur) var(--ease);
@@ -478,8 +488,8 @@ button {
 /* ───────── History rows ───────── */
 
 .sheet {
-  /* generous height so the page can always scroll, even while the cards animate */
-  min-height: 135dvh;
+  width: max-content;
+  min-width: 100%;
   background: var(--paper);
   border-left: 1px solid var(--line);
   border-right: 1px solid var(--line);
@@ -782,7 +792,7 @@ input:focus-visible {
   :root {
     --date-w: 116px;
     --card-w: 280px;
-    --col-w: 324px;
+    --col-w: calc(var(--card-w) + 16px);
   }
   .brand time {
     display: none;

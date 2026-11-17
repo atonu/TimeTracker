@@ -39,6 +39,20 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
   // "Set reminder?" appears after pausing, then dissolves.
   const [ask, setAsk] = useState<"off" | "on" | "fade">("off");
   const [toolsOpen, setToolsOpen] = useState(false);
+  // Touch: tapping the card shows the tools; tapping a button on the card or anywhere outside hides them.
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    if (!toolsOpen) return;
+    const onDown = (e: PointerEvent) => {
+      if (cardRef.current && !cardRef.current.contains(e.target as Node)) setToolsOpen(false);
+    };
+    document.addEventListener("pointerdown", onDown);
+    return () => document.removeEventListener("pointerdown", onDown);
+  }, [toolsOpen]);
+  const onCardClick = (e: React.MouseEvent<HTMLDivElement>) => {
+    const onButton = (e.target as HTMLElement).closest("button");
+    setToolsOpen(!onButton);
+  };
   const timers = useRef<ReturnType<typeof setTimeout>[]>([]);
   const clearTimers = () => {
     timers.current.forEach(clearTimeout);
@@ -106,8 +120,10 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
   );
 
   // Dissolve ASK_MS after it appears, or ASK_MS after the cursor leaves it.
+  const [barRun, setBarRun] = useState(0); // restarts the countdown bar each time the timer restarts
   const scheduleDismiss = () => {
     clearTimers();
+    setBarRun((n) => n + 1);
     timers.current.push(
       setTimeout(() => {
         setAsk("fade");
@@ -135,12 +151,13 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
 
   return (
     <div
+      ref={cardRef}
+      onClick={onCardClick}
       className={`card${running ? " running" : ""}${done ? " complete" : ""}${ringing ? " ringing" : ""}${ask !== "off" ? " asking" : ""}${toolsOpen ? " tools-open" : ""}`}
     >
       <TickFrame progress={progress} />
 
-      {/* On touch screens there is no hover: tapping the title row reveals the tools */}
-      <div className="card-head" onClick={() => setToolsOpen((o) => !o)}>
+      <div className="card-head">
         <span className="badge" style={{ background: topic.color }} />
         <span className="card-title" title={topic.title}>
           {topic.title}
@@ -240,6 +257,7 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
                 ))}
                 <span className="rem-unit">{BREAK_UNIT.label}</span>
               </div>
+              <div key={barRun} className="rem-bar" aria-hidden />
             </>
           )}
         </div>

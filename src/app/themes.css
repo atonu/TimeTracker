@@ -858,8 +858,8 @@
   }
 
   .scroller {
-    /* 80% of the window for the cards; 56px topbar + 38px label row come off that */
-    --row-h: max(260px, calc(80dvh - 94px));
+    /* 85% of the window for the cards; 56px topbar + 38px label row come off that */
+    --row-h: max(260px, calc(85dvh - 94px));
     --card-h: clamp(130px, calc(80dvh - 260px), 200px);
     --time: 23px;
     --foot: 18px;
@@ -867,8 +867,8 @@
     --btn-edge: 11px;
   }
   .scroller[data-compact] {
-    --row-h: 100px;
-    --card-h: 88px;
+    --row-h: calc(40dvh - 38px);
+    --card-h: clamp(88px, calc(40dvh - 120px), 170px);
     --time: 19px;
     --foot: 0px;
     --btn: 24px;
@@ -1625,4 +1625,203 @@ button.rem-custom-link:hover {
 }
 .scroller[data-dense]:not([data-compact]) .card {
   padding: 20px;
+}
+
+/* ---------- Scrolled further down: cards 20% of the window, table 80% ---------- */
+.scroller[data-tiny] {
+  --row-h: calc(20dvh - 52px);
+  --card-h: clamp(100px, calc(20dvh - 80px), 130px);
+  --time: calc(var(--card-h) * 0.36);
+}
+@media (max-width: 640px) {
+  .scroller[data-tiny] {
+    --row-h: calc(20dvh - 38px);
+    --card-h: clamp(88px, calc(20dvh - 70px), 120px);
+    --time: 17px;
+  }
+}
+
+/* ---------- Pinned history rows (All time + today) ---------- */
+.pinned {
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+/* ---------- Page controller layout ---------- */
+.sheet-scroll {
+  flex: 1 1 auto;
+  min-height: 0;
+  width: 100%;
+  overflow: auto; /* visible scrollbars; the page controller holds the table still until phase 3 */
+  position: relative;
+}
+.topbar {
+  transition: height var(--dur) var(--ease);
+}
+/* scrolled a bit: the top bar folds away so the cards get the space */
+.scroller[data-compact] .topbar {
+  height: 0;
+}
+
+/* Expand / collapse button: fixed on screen, just above the cards at the top right */
+.dense-toggle {
+  position: fixed;
+  top: 84px;
+  right: 28px;
+  z-index: 40;
+}
+
+/* Column labels and the cards row span the whole table width, so they stay full-width when scrolled sideways */
+.sticky-top > .grid {
+  width: max-content;
+  min-width: 100%;
+}
+
+/* Desktop cards: the digits are kept clear of the progress ring and the play button */
+@media (min-width: 641px) {
+  .card-body {
+    padding: 0 26px;
+  }
+  .time {
+    font-size: min(var(--time), max(18px, calc((var(--card-w) - 110px) / 3.1)));
+  }
+}
+
+/* Scrolled furthest (cards at 20%), desktop: title, tools and play button sit on the middle line */
+@media (min-width: 641px) {
+  .scroller[data-tiny] .card-head {
+    position: absolute;
+    top: 50%;
+    left: 30px;
+    transform: translateY(-50%);
+    width: auto;
+    height: auto;
+  }
+  .scroller[data-tiny] .card-tools {
+    margin-left: 0;
+  }
+  .scroller[data-tiny] .play-wrap {
+    top: 50%;
+    bottom: auto;
+    transform: translateY(-50%);
+  }
+}
+
+/* Scrolled furthest, desktop: the archive / edit / add buttons sit just above the countdown, centred */
+@media (min-width: 641px) {
+  .scroller[data-tiny] .card-head {
+    left: 30px;
+    right: 30px;
+    width: auto;
+  }
+  .scroller[data-tiny] .card-tools {
+    position: absolute;
+    left: 0;
+    right: 0;
+    margin: 0 auto;
+    width: fit-content;
+    top: calc(var(--time) * 0.5 + 10px); /* just below the countdown */
+  }
+}
+
+/* ---------- Set reminder: always centred vertically on the card ---------- */
+/* Higher specificity than the compact and phone rules, so the reminder is always centred */
+.scroller .card .reminder,
+.scroller .card .reminder.fade {
+  top: 50%;
+  bottom: auto;
+  translate: 0 -50%;
+}
+
+/* While the reminder shows, the card is blank except for its progress ring */
+.card.asking .card-head,
+.card.asking .card-body,
+.card.asking .card-foot,
+.card.asking .play-wrap,
+.card.asking .stop-btn {
+  visibility: hidden;
+}
+
+/* ---------- Phones: tap to show the tools, no hover; labels stay until phase 3 ---------- */
+@media (max-width: 640px) {
+  .scroller[data-compact]:not([data-tiny]) .card-foot {
+    opacity: 1;
+  }
+  .card:hover .card-tools {
+    opacity: 0;
+    transform: scale(0.9);
+    pointer-events: none;
+  }
+  .card.tools-open .card-tools {
+    opacity: 1;
+    transform: none;
+    pointer-events: auto;
+  }
+}
+
+/* Phones: the Custom link sits below the minutes row instead of beside the title */
+@media (max-width: 640px) {
+  .reminder .rem-title {
+    display: contents;
+  }
+  .reminder .rem-title > span {
+    order: 0;
+  }
+  .reminder .rem-opts {
+    order: 1;
+  }
+  .reminder .rem-custom-link {
+    order: 2;
+  }
+}
+
+/* ---------- Reminder countdown bar: shows how long the actions stay ---------- */
+.rem-bar {
+  width: 100%;
+  height: 4px;
+  margin-top: 6px;
+  border-radius: 999px;
+  background: var(--soft);
+  overflow: hidden;
+}
+.rem-bar::after {
+  content: "";
+  display: block;
+  height: 100%;
+  border-radius: 999px;
+  background: var(--faint);
+  transform-origin: left center;
+  animation: rem-bar-run 5s linear forwards; /* matches ASK_MS */
+}
+.reminder:hover .rem-bar::after {
+  animation-play-state: paused;
+}
+@keyframes rem-bar-run {
+  from {
+    transform: scaleX(1);
+  }
+  to {
+    transform: scaleX(0);
+  }
+}
+.reminder .rem-bar {
+  align-self: stretch;
+}
+@media (max-width: 640px) {
+  .reminder .rem-custom-link {
+    margin-top: 4px;
+  }
+}
+
+/* Countdown bar size: 40% of the reminder on PC, 50% on phones, placed under Custom on phones */
+.reminder .rem-bar {
+  width: 40%;
+  align-self: center;
+}
+@media (max-width: 640px) {
+  .reminder .rem-bar {
+    width: 50%;
+    align-self: center;
+    order: 3;
+  }
 }

@@ -160,6 +160,7 @@ export default function Tickwell() {
       ty = e.touches[0].clientY;
     };
     const onTouchMove = (e: TouchEvent) => {
+      if (e.touches.length !== 1) return; // two fingers = pinch-zoom, leave it to the browser
       e.preventDefault();
       const x = e.touches[0].clientX;
       const y = e.touches[0].clientY;

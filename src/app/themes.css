@@ -1825,3 +1825,110 @@ button.rem-custom-link:hover {
     order: 3;
   }
 }
+
+/* Topic dialog submit button: a tick instead of the word on phones */
+.submit-tick {
+  display: none;
+}
+@media (max-width: 640px) {
+  .submit-text {
+    display: none;
+  }
+  .submit-tick {
+    display: inline-grid;
+    place-items: center;
+  }
+  .submit-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    justify-content: center;
+  }
+}
+
+/* Topic dialog on phones: Cancel moves to the left-hand side */
+@media (max-width: 640px) {
+  .cancel-btn {
+    order: -1;
+  }
+}
+
+/* Phones: the confirm tick drops below the mm : ss fields, centred */
+@media (max-width: 640px) {
+  .rem-custom {
+    flex-wrap: wrap;
+    justify-content: center;
+    row-gap: 6px;
+  }
+  .rem-custom .rem-confirm {
+    flex-basis: 100%;
+    margin: 0 auto;
+  }
+}
+
+/* Phones: the confirm tick sits on its own centred line under the fields (not stretched) */
+@media (max-width: 640px) {
+  .rem-custom::before {
+    content: "";
+    flex-basis: 100%;
+    height: 0;
+    order: 1;
+  }
+  .rem-custom .rem-confirm {
+    flex: 0 0 auto;
+    width: 24px;
+    height: 24px;
+    margin: 0 auto;
+    order: 2;
+  }
+}
+
+/* Stop button: the square icon sits exactly in the middle of the circle */
+.stop-btn {
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 0;
+}
+.stop-btn svg {
+  display: block;
+  margin: 0;
+}
+
+/* Master "Stop alarm": fixed at the top middle of the screen, whatever the scroll position */
+.stop-all {
+  position: fixed;
+  top: 14px;
+  left: 50%;
+  translate: -50% 0;
+  z-index: 50;
+}
+
+/* Master "Stop alarm": more space above it, and its text stays visible on phones */
+.stop-all {
+  top: 28px;
+}
+.stop-all .btn-label {
+  display: inline;
+}
+
+/* Master "Stop alarm": same look on PC and phones, phones a little smaller */
+.stop-all {
+  transform: none;
+  translate: -50% 0;
+  top: 28px;
+  width: auto;
+  height: 40px;
+  padding: 0 18px;
+  gap: 8px;
+  justify-content: initial;
+}
+@media (max-width: 640px) {
+  .stop-all {
+    height: 34px;
+    padding: 0 14px;
+    gap: 6px;
+    font-size: 13px;
+  }
+}

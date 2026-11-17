@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from "react";
 import { COLORS, uid, type Topic } from "@/lib/tracker";
 import ConfirmInline from "./ConfirmInline";
+import { CheckIcon } from "./icons";
 
 type Props = {
   /** Existing topic to edit, or null to create a new one. */
@@ -132,11 +133,14 @@ export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props)
             />
           )}
           <span className="spacer" />
-          <button type="button" className="btn-text" onClick={onClose}>
+          <button type="button" className="btn-text cancel-btn" onClick={onClose}>
             Cancel
           </button>
-          <button type="submit" className="btn-primary" disabled={!valid}>
-            {topic ? "Save" : "Create"}
+          <button type="submit" className="btn-primary submit-btn" disabled={!valid} aria-label={topic ? "Save" : "Create"}>
+            <span className="submit-text">{topic ? "Save" : "Create"}</span>
+            <span className="submit-tick">
+              <CheckIcon size={16} />
+            </span>
           </button>
         </div>
       </form>

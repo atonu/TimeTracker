@@ -400,14 +400,6 @@ export default function Tickwell() {
               {new Date(now).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
             </time>
           </div>
-          {ringingCount > 0 && (
-            <button className="stop-all" onClick={stopAll}>
-              <span className="ring-icon">
-                <AlarmIcon size={16} />
-              </span>
-              <span className="btn-label">Stop alarm{ringingCount > 1 ? "s" : ""}</span>
-            </button>
-          )}
           <div className="topbar-actions">
             <button
               className="btn-ghost icon-only"
@@ -552,6 +544,14 @@ export default function Tickwell() {
         )}
       </div>
 
+        {ringingCount > 0 && (
+          <button className="stop-all" onClick={stopAll}>
+            <span className="ring-icon">
+              <AlarmIcon size={16} />
+            </span>
+            <span className="btn-label">Stop alarm{ringingCount > 1 ? "s" : ""}</span>
+          </button>
+        )}
       {/* Fixed to the screen, outside the scroller, so it never moves with the layout */}
       {hydrated && (
         <div className="dense-rail-fixed">

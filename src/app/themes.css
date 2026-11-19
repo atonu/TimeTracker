@@ -2416,3 +2416,7 @@ button.rem-custom-link:hover {
 @media (max-width: 640px) {
   .scroller[data-compact] .card-body { padding-bottom: 8px; }
 }
+
+/* Compact-size cards: more room around the bottom-left text, clear of the tick ring and the countdown */
+.scroller[data-dense]:not([data-compact]) .card { padding-bottom: 30px; }
+.scroller[data-dense]:not([data-compact]) .card-foot { margin-top: 18px; padding-left: 10px; }

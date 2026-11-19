@@ -2182,3 +2182,25 @@ button.rem-custom-link:hover {
     --time: calc(var(--card-h) * 0.3);
   }
 }
+
+/* Cross in the top right of the card while the reminder prompt shows */
+.card .rem-close {
+  position: absolute;
+  top: 23px;
+  right: 23px;
+  z-index: 6;
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+}
+.card .rem-close:hover {
+  background: var(--soft);
+  color: var(--ink);
+}

@@ -5,7 +5,7 @@
 //   VAPID_PUBLIC_KEY / VAPID_PRIVATE_KEY   from `npx web-push generate-vapid-keys`
 //   VAPID_SUBJECT                          optional contact, a https: or mailto: address
 
-import webpush from "web-push";
+import * as webpushModule from "web-push";
 import { doneToday, emptyState, type Alert, type RoomState } from "../room";
 import { fmtGoal, validZone } from "../tracker";
 import { locked } from "./lock";
@@ -16,15 +16,37 @@ export const DEFAULT_PREFS: PushPrefs = { done: true, brk: true, sync: false };
 
 // ---------- setup ----------
 
-export const publicKey = () => process.env.VAPID_PUBLIC_KEY || null;
+export const publicKey = () => process.env.VAPID_PUBLIC_KEY?.trim() || null;
 export const pushConfigured = () => !!(process.env.VAPID_PUBLIC_KEY && process.env.VAPID_PRIVATE_KEY);
 
+// web-push is CommonJS: depending on the bundler the functions sit on the module or on its default export.
+type WebPush = typeof import("web-push");
+const webpush = ((webpushModule as unknown as { default?: WebPush }).default ?? webpushModule) as WebPush;
+
 let ready = false;
+
+/** A contact the push services accept: a mailto: or https: address. Anything else is repaired or replaced. */
+function vapidSubject() {
+  const site = process.env.NEXT_PUBLIC_SITE_URL || "https://tickwell.atonu.online";
+  const raw = (process.env.VAPID_SUBJECT || "").trim();
+  if (!raw) return site;
+  if (/^(mailto:|https:\/\/)/i.test(raw)) return raw;
+  if (/^[^\s@]+@[^\s@]+$/.test(raw)) return `mailto:${raw}`; // a bare email address
+  if (/^[\w.-]+\.[a-z]{2,}(\/.*)?$/i.test(raw)) return `https://${raw}`; // a bare domain
+  return site;
+}
+
 function init() {
   if (ready) return true;
   if (!pushConfigured()) return false;
-  const subject = process.env.VAPID_SUBJECT || process.env.NEXT_PUBLIC_SITE_URL || "https://tickwell.atonu.online";
-  webpush.setVapidDetails(subject, process.env.VAPID_PUBLIC_KEY as string, process.env.VAPID_PRIVATE_KEY as string);
+  const pub = (process.env.VAPID_PUBLIC_KEY as string).trim();
+  const priv = (process.env.VAPID_PRIVATE_KEY as string).trim();
+  try {
+    webpush.setVapidDetails(vapidSubject(), pub, priv);
+  } catch (e) {
+    console.error("[tickwell] push keys rejected:", e instanceof Error ? e.message : e);
+    return false;
+  }
   ready = true;
   return true;
 }

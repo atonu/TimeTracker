@@ -62,7 +62,8 @@ export async function POST(req: Request, { params }: Ctx) {
       default:
         return Response.json({ error: "bad action" }, { status: 400 });
     }
-  } catch {
+  } catch (e) {
+    console.error("[tickwell] push request failed:", e instanceof Error ? e.message : e);
     return Response.json({ error: "unavailable" }, { status: 503 });
   }
 }

@@ -1,15 +1,18 @@
 # syntax=docker/dockerfile:1
 
-FROM node:22-alpine AS deps
+# The install and the Next.js build always run natively on the build machine (BUILDPLATFORM).
+# Building under arm64 emulation crashes (qemu: Illegal instruction), and the output is plain JavaScript,
+# so the same build can be used for both amd64 and arm64 images. Only the small final stage runs per target.
+FROM --platform=$BUILDPLATFORM node:22-alpine AS deps
 WORKDIR /app
 COPY package.json package-lock.json ./
 RUN npm ci
 
-FROM node:22-alpine AS build
+FROM --platform=$BUILDPLATFORM node:22-alpine AS build
 WORKDIR /app
 ENV NEXT_TELEMETRY_DISABLED=1
 # Public address of the site (used for share-preview links). Set with --build-arg.
-ARG NEXT_PUBLIC_SITE_URL=http://localhost:3000
+ARG NEXT_PUBLIC_SITE_URL=https://tickwell.atonu.online
 ENV NEXT_PUBLIC_SITE_URL=$NEXT_PUBLIC_SITE_URL
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .

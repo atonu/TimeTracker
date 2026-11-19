@@ -50,7 +50,7 @@ jobs:
           push: true
           platforms: linux/amd64,linux/arm64
           build-args: |
-            NEXT_PUBLIC_SITE_URL=${{ vars.SITE_URL || 'http://localhost:3000' }}
+            NEXT_PUBLIC_SITE_URL=${{ vars.SITE_URL || 'https://tickwell.atonu.online' }}
           tags: |
             ${{ steps.ref.outputs.image }}
             ${{ steps.ref.outputs.latest }}

@@ -4,7 +4,7 @@ import { BRAND } from "@/lib/brand";
 export default function manifest(): MetadataRoute.Manifest {
   return {
     id: "/",
-    name: `${BRAND.name} — ${BRAND.motto}`,
+    name: `${BRAND.name}: ${BRAND.motto}`,
     short_name: BRAND.name,
     description: BRAND.description,
     start_url: "/",
@@ -15,9 +15,9 @@ export default function manifest(): MetadataRoute.Manifest {
     theme_color: "#ffffff",
     categories: ["productivity", "lifestyle", "health"],
     icons: [
-      { src: "/pwa/icon/192", sizes: "192x192", type: "image/png", purpose: "any" },
-      { src: "/pwa/icon/512", sizes: "512x512", type: "image/png", purpose: "any" },
-      { src: "/pwa/icon/maskable-512", sizes: "512x512", type: "image/png", purpose: "maskable" },
+      { src: "/pwa/icon/192?v=2", sizes: "192x192", type: "image/png", purpose: "any" },
+      { src: "/pwa/icon/512?v=2", sizes: "512x512", type: "image/png", purpose: "any" },
+      { src: "/pwa/icon/maskable-512?v=2", sizes: "512x512", type: "image/png", purpose: "maskable" },
     ],
     shortcuts: [{ name: "Open Tickwell", url: "/" }],
   };

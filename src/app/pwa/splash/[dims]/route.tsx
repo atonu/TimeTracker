@@ -9,7 +9,7 @@ export async function GET(_: Request, { params }: { params: Promise<{ dims: stri
   const { dims } = await params;
   const hit = SPLASH_SIZES.find(([w, h]) => `${w}x${h}` === dims);
   if (!hit) return new Response("Not found", { status: 404 });
-  const res = splashImage(hit[0], hit[1]);
+  const res = await splashImage(hit[0], hit[1]);
   res.headers.set("Cache-Control", "public, max-age=31536000, immutable");
   return res;
 }

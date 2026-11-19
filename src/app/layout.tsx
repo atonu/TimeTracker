@@ -22,7 +22,7 @@ const oswald = localFont({
   display: "swap",
 });
 
-const SITE = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+const SITE = BRAND.appUrl; // the public address; link previews need absolute image URLs
 const TITLE = `${BRAND.name} · ${BRAND.motto}`;
 
 export const metadata: Metadata = {
@@ -44,6 +44,7 @@ export const metadata: Metadata = {
   openGraph: {
     type: "website",
     siteName: BRAND.name,
+    locale: "en_US",
     title: TITLE,
     description: BRAND.description,
     url: "/",

@@ -1,7 +1,7 @@
 // Tickwell service worker: makes the app open instantly and work offline.
 // Room data comes live from the server (and is kept in localStorage for offline), so only the app shell is cached.
-const CACHE = "tickwell-v2";
-const SHELL = ["/", "/manifest.webmanifest", "/pwa/icon/192", "/pwa/icon/512"];
+const CACHE = "tickwell-v3";
+const SHELL = ["/", "/manifest.webmanifest", "/pwa/icon/192?v=2", "/pwa/icon/512?v=2"];
 
 self.addEventListener("install", (event) => {
   event.waitUntil(caches.open(CACHE).then((c) => c.addAll(SHELL)).then(() => self.skipWaiting()));

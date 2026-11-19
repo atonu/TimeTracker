@@ -21,6 +21,6 @@ export const SPLASH_SIZES: [number, number, number][] = [
 ];
 
 export const splashStartupImages = SPLASH_SIZES.map(([w, h, r]) => ({
-  url: `/pwa/splash/${w}x${h}`,
+  url: `/pwa/splash/${w}x${h}?v=2`,
   media: `(device-width: ${w / r}px) and (device-height: ${h / r}px) and (-webkit-device-pixel-ratio: ${r}) and (orientation: portrait)`,
 }));

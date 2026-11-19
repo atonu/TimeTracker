@@ -4,6 +4,6 @@ export const alt = "Tickwell. Allocate. Organize. Daily life.";
 export const size = { width: 1200, height: 630 };
 export const contentType = "image/png";
 
-export default function OgImage() {
+export default async function OgImage() {
   return bannerImage();
 }

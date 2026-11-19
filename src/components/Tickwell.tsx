@@ -15,6 +15,7 @@ import ColumnLabel from "./ColumnLabel";
 import ColumnsPanel from "./ColumnsPanel";
 import { AlarmIcon, ArchiveIcon, BrushIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, PlusIcon, ShareIcon, BellIcon } from "./icons";
 import ShareDialog from "./ShareDialog";
+import { track } from "@/lib/analytics";
 import NotificationsDialog from "./NotificationsDialog";
 import TopicCard, { EmptyCard } from "./TopicCard";
 import TopicDialog from "./TopicDialog";
@@ -351,6 +352,7 @@ export default function Tickwell({ roomId }: { roomId: string }) {
       localStorage.setItem(LAST_ROOM_KEY, id);
     } catch {}
     setCreateMenu(null);
+    track("room_created");
     router.push(`/${id}`);
   };
 
@@ -440,7 +442,10 @@ export default function Tickwell({ roomId }: { roomId: string }) {
             </button>
             <button
               className="btn-ghost icon-only"
-              onClick={() => setModal({ kind: "share" })}
+              onClick={() => {
+                track("share_opened");
+                setModal({ kind: "share" });
+              }}
               aria-label="Share this room"
               title="Share"
             >
@@ -448,7 +453,10 @@ export default function Tickwell({ roomId }: { roomId: string }) {
             </button>
             <button
               className="btn-ghost icon-only"
-              onClick={() => setModal({ kind: "notify" })}
+              onClick={() => {
+                track("notifications_opened");
+                setModal({ kind: "notify" });
+              }}
               aria-label="Notifications"
               title="Notifications"
             >

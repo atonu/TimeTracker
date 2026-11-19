@@ -1,6 +1,7 @@
 import type { Metadata, Viewport } from "next";
 import localFont from "next/font/local";
 import PwaRegister from "@/components/PwaRegister";
+import Analytics from "@/components/Analytics";
 import { BRAND } from "@/lib/brand";
 import { splashStartupImages } from "@/lib/splash";
 import "./globals.css";
@@ -74,6 +75,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body>
         {children}
         <PwaRegister />
+        <Analytics />
       </body>
     </html>
   );

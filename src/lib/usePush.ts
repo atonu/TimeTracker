@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { browserZone } from "./tracker";
+import { track } from "./analytics";
 
 export type PushPrefs = { done: boolean; brk: boolean; sync: boolean };
 export const DEFAULT_PREFS: PushPrefs = { done: true, brk: true, sync: false };
@@ -175,6 +176,7 @@ export function usePush(roomId: string) {
         return;
       }
       await subscribeNow(state.prefs);
+      track("notifications_enabled");
       patch({ busy: false, status: "on" });
     } catch (e) {
       const msg = e instanceof Error ? e.message : "";

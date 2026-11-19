@@ -3,6 +3,18 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { applyOp, emptyState, newOpId, type Op, type OpBody, type RoomState } from "./room";
 import { deviceId } from "./usePush";
+import { track } from "./analytics";
+
+// Operation type to analytics event name. No topic names or ids are ever sent.
+const TRACKED: Record<string, string> = {
+  start: "timer_started",
+  pause: "timer_paused",
+  break: "break_set",
+  save: "topic_saved",
+  archive: "topic_archived",
+  restore: "topic_restored",
+  remove: "topic_deleted",
+};
 import { browserZone, dayKey, demoData, liveLog, setZone, type Log, type Topic } from "./tracker";
 
 const LEGACY_KEY = "timetracker:v1";
@@ -125,6 +137,8 @@ export function useTracker(roomId: string) {
   const dispatch = useCallback(
     (body: OpBody) => {
       const op = { ...body, opId: newOpId(), at: Date.now() + offset.current } as Op;
+      const event = TRACKED[body.t];
+      if (event) track(event);
       setQueue([...pendingRef.current, op]);
       void flush();
     },

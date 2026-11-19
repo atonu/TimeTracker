@@ -79,10 +79,11 @@ jobs:
           VAPID_PUBLIC_KEY: ${{ vars.VAPID_PUBLIC_KEY || secrets.VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
           VAPID_SUBJECT: ${{ vars.VAPID_SUBJECT || secrets.VAPID_SUBJECT }}
+          POSTHOG_KEY: ${{ vars.POSTHOG_KEY || secrets.POSTHOG_KEY }}
         run: |
           ssh -i ~/.ssh/id_deploy -p "${{ secrets.SSH_PORT || 22 }}" \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \
-            "IMAGE_REF='$IMAGE_REF' REGISTRY_USER='$REGISTRY_USER' REGISTRY_TOKEN='$REGISTRY_TOKEN' HOST_PORT='$HOST_PORT' MONGODB_URI='$MONGODB_URI' MONGODB_DB='$MONGODB_DB' VAPID_PUBLIC_KEY='$VAPID_PUBLIC_KEY' VAPID_PRIVATE_KEY='$VAPID_PRIVATE_KEY' VAPID_SUBJECT='$VAPID_SUBJECT' CONTAINER='${{ env.CONTAINER }}' bash -s" <<'REMOTE'
+            "IMAGE_REF='$IMAGE_REF' REGISTRY_USER='$REGISTRY_USER' REGISTRY_TOKEN='$REGISTRY_TOKEN' HOST_PORT='$HOST_PORT' MONGODB_URI='$MONGODB_URI' MONGODB_DB='$MONGODB_DB' VAPID_PUBLIC_KEY='$VAPID_PUBLIC_KEY' VAPID_PRIVATE_KEY='$VAPID_PRIVATE_KEY' VAPID_SUBJECT='$VAPID_SUBJECT' POSTHOG_KEY='$POSTHOG_KEY' CONTAINER='${{ env.CONTAINER }}' bash -s" <<'REMOTE'
           set -euo pipefail
           echo "$REGISTRY_TOKEN" | docker login ghcr.io -u "$REGISTRY_USER" --password-stdin
           docker pull "$IMAGE_REF"
@@ -97,6 +98,7 @@ jobs:
             -e VAPID_PUBLIC_KEY="$VAPID_PUBLIC_KEY" \
             -e VAPID_PRIVATE_KEY="$VAPID_PRIVATE_KEY" \
             -e VAPID_SUBJECT="$VAPID_SUBJECT" \
+            -e POSTHOG_KEY="$POSTHOG_KEY" \
             "$IMAGE_REF"
           docker logout ghcr.io
           docker image prune -f

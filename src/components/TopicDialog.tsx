@@ -18,7 +18,7 @@ const PRESETS = [30, 60, 120, 180, 240];
 export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props) {
   const [title, setTitle] = useState(topic?.title ?? "");
   const [color, setColor] = useState(topic?.color ?? COLORS[0]);
-  const initial = Math.round((topic?.goalMs ?? 2 * 3600e3) / 60000);
+  const initial = Math.round((topic?.goalMs ?? 30 * 60e3) / 60000);
   const [hours, setHours] = useState(Math.floor(initial / 60));
   const [minutes, setMinutes] = useState(initial % 60);
   const titleRef = useRef<HTMLInputElement>(null);

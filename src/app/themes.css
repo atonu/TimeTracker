@@ -2334,12 +2334,6 @@ button.rem-custom-link:hover {
   }
 }
 
-/* 10. Card tools are faintly visible when not hovered, so people can find them */
-@media (hover: hover) {
-  .card:not(:hover) .card-tools { opacity: 0.45; transform: none; }
-  .scroller[data-tiny] .card:not(:hover) .card-tools { opacity: 0; }
-}
-
 /* 12. Short screens (phones on their side): a thinner header and a lower card */
 @media (max-height: 500px) {
   .topbar { height: 48px; padding-top: 0; }
@@ -2375,3 +2369,50 @@ button.rem-custom-link:hover {
 /* Small helper texts in the notifications dialog */
 .notify-help { margin: 0; font-size: 12px; line-height: 1.45; color: var(--muted); }
 .notify-help b { color: var(--ink); font-weight: 600; }
+
+/* ===== Phones: wider, shorter cards in every phase; the countdown always fits inside the frame ===== */
+@media (max-width: 640px) {
+  :root {
+    --card-w: 132px;
+    --col-w: 148px;
+  }
+  .scroller:not([data-compact]) {
+    --card-h: clamp(150px, calc(80dvh - 280px), 230px);
+  }
+  .scroller[data-compact] {
+    --card-h: clamp(88px, calc(40dvh - 150px), 130px);
+  }
+  .scroller[data-tiny] {
+    --card-h: clamp(80px, calc(20dvh - 74px), 100px);
+  }
+  .card-body { padding: 0 8px; }
+  .time {
+    /* digits plus the small seconds must fit the card width, whatever the phase */
+    font-size: min(var(--time), calc((var(--card-w) - 28px) / 3.2));
+  }
+  .scroller:not([data-compact]) { --time: 34px; }
+}
+@media (max-width: 640px) {
+  .scroller[data-compact] { --time: 26px; }
+  .scroller[data-tiny] { --time: 23px; }
+}
+
+/* ===== Round 3 ===== */
+
+/* Card tools show only on hover (or tap on phones), as before */
+@media (hover: hover) {
+  .card:not(:hover):not(:focus-within) .card-tools { opacity: 0; transform: scale(0.9); }
+}
+
+/* Expanded cards: a little gap above the bottom text (goal reached / of n minutes n%) */
+.scroller:not([data-compact]) .card-foot { margin-top: 12px; }
+
+/* The play / pause button keeps the size it has in phase 1 through phases 2 and 3 */
+.scroller[data-compact] { --btn: 48px; }
+.scroller[data-dense][data-compact] { --btn: 36px; }
+@media (max-width: 640px) {
+  .scroller[data-compact] { --btn: 32px; --btn-edge: 10px; }
+}
+@media (max-width: 640px) {
+  .scroller[data-compact] .card-body { padding-bottom: 8px; }
+}

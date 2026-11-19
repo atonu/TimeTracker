@@ -39,7 +39,7 @@ export const ArchiveIcon = () => (
 
 export const PlayIcon = () => (
   <svg width={15} height={15} viewBox="0 0 24 24" fill="currentColor">
-    <path d="M8 4.8v14.4a1 1 0 0 0 1.5.86l12-7.2a1 1 0 0 0 0-1.72l-12-7.2A1 1 0 0 0 8 4.8z" />
+    <path transform="translate(-2.2 0)" d="M8 4.8v14.4a1 1 0 0 0 1.5.86l12-7.2a1 1 0 0 0 0-1.72l-12-7.2A1 1 0 0 0 8 4.8z" />
   </svg>
 );
 

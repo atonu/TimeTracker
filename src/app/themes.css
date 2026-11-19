@@ -1613,6 +1613,7 @@ button.rem-custom-link:hover {
 }
 
 /* Dense sizes. Only applies when the expanded view is showing (compact keeps its own sizes). */
+@media (min-width: 641px) {
 .scroller[data-dense]:not([data-compact]) {
   --date-w: 120px;
   --col-w: 320px;
@@ -1625,6 +1626,7 @@ button.rem-custom-link:hover {
 }
 .scroller[data-dense]:not([data-compact]) .card {
   padding: 20px;
+}
 }
 
 /* ---------- Scrolled further down: cards 20% of the window, table 80% ---------- */
@@ -2409,7 +2411,7 @@ button.rem-custom-link:hover {
 
 /* The play / pause button keeps the size it has in phase 1 through phases 2 and 3 */
 .scroller[data-compact] { --btn: 48px; }
-.scroller[data-dense][data-compact] { --btn: 36px; }
+@media (min-width: 641px) { .scroller[data-dense][data-compact] { --btn: 36px; } }
 @media (max-width: 640px) {
   .scroller[data-compact] { --btn: 32px; --btn-edge: 10px; }
 }
@@ -2418,5 +2420,22 @@ button.rem-custom-link:hover {
 }
 
 /* Compact-size cards: more room around the bottom-left text, clear of the tick ring and the countdown */
-.scroller[data-dense]:not([data-compact]) .card { padding-bottom: 30px; }
-.scroller[data-dense]:not([data-compact]) .card-foot { margin-top: 18px; padding-left: 10px; }
+@media (min-width: 641px) {
+  .scroller[data-dense]:not([data-compact]) .card { padding-bottom: 30px; }
+  .scroller[data-dense]:not([data-compact]) .card-foot { margin-top: 18px; padding-left: 10px; }
+}
+
+/* A little more space to the right of and below the play / pause button, clear of the tick ring */
+@media (max-width: 640px) {
+  .scroller { --btn-edge: 15px; }
+  .scroller[data-compact] { --btn-edge: 14px; }
+}
+@media (min-width: 641px) {
+  .scroller[data-dense]:not([data-compact]) { --btn-edge: 26px; }
+  .scroller[data-dense][data-compact] { --btn-edge: 24px; }
+}
+
+/* Phones, smallest cards: back to the original edge gap */
+@media (max-width: 640px) {
+  .scroller[data-tiny] { --btn-edge: 10px; }
+}

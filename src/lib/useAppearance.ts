@@ -21,6 +21,9 @@ export function useAppearance() {
   useEffect(() => {
     if (!loaded) return;
     document.documentElement.dataset.theme = theme;
+    // the phone status bar follows the theme
+    const bg = getComputedStyle(document.documentElement).getPropertyValue("--bg").trim();
+    if (bg) document.querySelector('meta[name="theme-color"]')?.setAttribute("content", bg);
     try {
       localStorage.setItem(KEY, JSON.stringify({ theme, bg }));
     } catch {}

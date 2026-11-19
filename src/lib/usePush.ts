@@ -177,7 +177,16 @@ export function usePush(roomId: string) {
       await subscribeNow(state.prefs);
       patch({ busy: false, status: "on" });
     } catch (e) {
-      patch({ busy: false, error: e instanceof Error ? e.message : "Could not turn notifications on." });
+      const msg = e instanceof Error ? e.message : "";
+      const brave = typeof navigator !== "undefined" && "brave" in navigator;
+      patch({
+        busy: false,
+        error: /push service|registration failed|AbortError/i.test(msg)
+          ? brave
+            ? "Brave blocks push by default. Open brave://settings/privacy, turn on 'Use Google services for push messaging', restart Brave and try again."
+            : "The browser's push service could not be reached. Check your connection and that notifications are allowed for this site, then try again."
+          : msg || "Could not turn notifications on.",
+      });
     }
   }, [subscribeNow, state.prefs]);
 

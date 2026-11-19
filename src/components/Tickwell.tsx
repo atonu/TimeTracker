@@ -178,7 +178,7 @@ export default function Tickwell({ roomId }: { roomId: string }) {
     };
 
     const onKey = (e: KeyboardEvent) => {
-      const t = e.target as HTMLElement;
+      const t = e.target instanceof Element ? e.target : document.body;
       if (t.closest("input, textarea, select, [contenteditable]")) return;
       const step = el.clientHeight * 0.6;
       if (e.key === "ArrowDown" || e.key === "PageDown" || e.key === " ") move(step, 0);
@@ -421,7 +421,12 @@ export default function Tickwell({ roomId }: { roomId: string }) {
             <span className="brand-dot" />
             Tickwell
             <time>
-              {new Date(now).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+              <span className="d-long">
+                {new Date(now).toLocaleDateString("en-GB", { weekday: "long", day: "numeric", month: "long" })}
+              </span>
+              <span className="d-short">
+                {new Date(now).toLocaleDateString("en-GB", { weekday: "short", day: "numeric", month: "short" })}
+              </span>
             </time>
           </div>
           <div className="topbar-actions">
@@ -465,7 +470,7 @@ export default function Tickwell({ roomId }: { roomId: string }) {
             >
               <EyeIcon />
             </button>
-            <button className="btn-ghost" onClick={() => setModal({ kind: "archives" })}>
+            <button className="btn-ghost" onClick={() => setModal({ kind: "archives" })} aria-label="Archives" title="Archives">
               <ArchiveIcon /> <span className="btn-label">Archives</span>
               {archivedList.length > 0 && <span className="count">{archivedList.length}</span>}
             </button>

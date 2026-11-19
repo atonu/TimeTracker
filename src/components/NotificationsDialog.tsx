@@ -111,6 +111,14 @@ export default function NotificationsDialog({ roomId, onClose }: Props) {
                 Turn off
               </button>
             </div>
+            <p className="notify-help">
+              <b>Turn off</b> stops alerts for this room on this device. <b>Reset</b> (below) removes this device completely and clears your choices.
+            </p>
+            <p className="notify-help">
+              Not seeing them? Check that your system allows notifications from your browser (Windows: Settings, System,
+              Notifications; Mac: System Settings, Notifications). Brave also needs "Use Google services for push
+              messaging" turned on in brave://settings/privacy.
+            </p>
           </>
         )}
 

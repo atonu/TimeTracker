@@ -53,3 +53,50 @@ self.addEventListener("fetch", (event) => {
     }),
   );
 });
+
+// ---- Push notifications: goal reached, break over, timers started or paused elsewhere ----
+self.addEventListener("push", (event) => {
+  let data = {};
+  try {
+    data = event.data ? event.data.json() : {};
+  } catch (e) {
+    data = { body: event.data ? event.data.text() : "" };
+  }
+  const options = {
+    body: data.body || "",
+    icon: "/pwa/icon/192?v=2",
+    badge: "/pwa/icon/192?v=2",
+    data: { url: data.url || "/" },
+  };
+  if (data.tag) {
+    options.tag = data.tag; // a newer notification of the same kind replaces the older one
+    options.renotify = true;
+  }
+  // iOS and Chrome require a visible notification for every push.
+  event.waitUntil(self.registration.showNotification(data.title || "Tickwell", options));
+});
+
+self.addEventListener("notificationclick", (event) => {
+  event.notification.close();
+  const target = new URL((event.notification.data && event.notification.data.url) || "/", self.location.origin).href;
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      for (const w of windows) {
+        if (w.url === target && "focus" in w) return w.focus();
+      }
+      for (const w of windows) {
+        if ("focus" in w && "navigate" in w) return w.focus().then((c) => (c && c.navigate ? c.navigate(target) : c));
+      }
+      return self.clients.openWindow(target);
+    }),
+  );
+});
+
+// The browser rotated its push credentials: tell the open pages so they can subscribe again.
+self.addEventListener("pushsubscriptionchange", (event) => {
+  event.waitUntil(
+    self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((windows) => {
+      windows.forEach((w) => w.postMessage({ type: "push-resubscribe" }));
+    }),
+  );
+});

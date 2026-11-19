@@ -13,8 +13,9 @@ import Onboarding from "./Onboarding";
 import ArchiveDialog from "./ArchiveDialog";
 import ColumnLabel from "./ColumnLabel";
 import ColumnsPanel from "./ColumnsPanel";
-import { AlarmIcon, ArchiveIcon, BrushIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, PlusIcon, ShareIcon } from "./icons";
+import { AlarmIcon, ArchiveIcon, BrushIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, PlusIcon, ShareIcon, BellIcon } from "./icons";
 import ShareDialog from "./ShareDialog";
+import NotificationsDialog from "./NotificationsDialog";
 import TopicCard, { EmptyCard } from "./TopicCard";
 import TopicDialog from "./TopicDialog";
 
@@ -34,6 +35,7 @@ type Modal =
   | { kind: "columns" }
   | { kind: "help" }
   | { kind: "share" }
+  | { kind: "notify" }
   | null;
 
 export default function Tickwell({ roomId }: { roomId: string }) {
@@ -441,6 +443,14 @@ export default function Tickwell({ roomId }: { roomId: string }) {
             </button>
             <button
               className="btn-ghost icon-only"
+              onClick={() => setModal({ kind: "notify" })}
+              aria-label="Notifications"
+              title="Notifications"
+            >
+              <BellIcon />
+            </button>
+            <button
+              className="btn-ghost icon-only"
               onClick={() => setModal({ kind: "help" })}
               aria-label="Help"
               title="Help"
@@ -667,6 +677,7 @@ export default function Tickwell({ roomId }: { roomId: string }) {
           </div>
         </div>
       )}
+      {modal?.kind === "notify" && <NotificationsDialog roomId={roomId} onClose={close} />}
       {modal?.kind === "share" && (
         <ShareDialog url={`${window.location.origin}/${roomId}`} status={status} onClose={close} />
       )}

@@ -78,6 +78,24 @@ export default function HelpModal({ onClose, onTour }: { onClose: () => void; on
           </ol>
         </section>
 
+        <section>
+          <h3>Notifications</h3>
+          <ol className="help-steps">
+            <li>
+              <b>Press the bell</b> and choose Turn on notifications. You can be told when a goal is reached, when a
+              break ends, and when a timer is started or paused on another device.
+            </li>
+            <li>
+              <b>iPhone and iPad:</b> notifications only work after you add Tickwell to the Home Screen (iOS 16.4 or
+              newer). In Safari tap Share, then Add to Home Screen, and open it from the new icon.
+            </li>
+            <li>
+              <b>Changed your mind?</b> Use Turn off, or Reset in the same window. If the browser blocked Tickwell, allow
+              it again in the browser&apos;s site settings.
+            </li>
+          </ol>
+        </section>
+
         <button className="btn-ghost help-tour" onClick={onTour}>
           Replay the welcome tour
         </button>

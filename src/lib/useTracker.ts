@@ -2,6 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { applyOp, emptyState, newOpId, type Op, type OpBody, type RoomState } from "./room";
+import { deviceId } from "./usePush";
 import { browserZone, dayKey, demoData, liveLog, setZone, type Log, type Topic } from "./tracker";
 
 const LEGACY_KEY = "timetracker:v1";
@@ -91,7 +92,7 @@ export function useTracker(roomId: string) {
           res = await fetch(`/api/r/${roomId}/op`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ op, tz: tz.current }),
+            body: JSON.stringify({ op, tz: tz.current, device: deviceId() }),
           });
         } catch {
           setStatus("offline");

@@ -137,6 +137,14 @@ export const HelpIcon = () => (
   </svg>
 );
 
+export const BellIcon = ({ off = false }: { off?: boolean }) => (
+  <svg {...base} width={16} height={16}>
+    <path d="M6 16.5V11a6 6 0 0 1 12 0v5.5l1.5 2H4.5z" />
+    <path d="M10 21a2.2 2.2 0 0 0 4 0" />
+    {off && <path d="M4 4l16 16" />}
+  </svg>
+);
+
 export const LinkIcon = () => (
   <svg {...base} width={16} height={16}>
     <path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1" />

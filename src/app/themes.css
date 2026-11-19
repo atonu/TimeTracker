@@ -2133,3 +2133,32 @@ button.rem-custom-link:hover {
     top: calc(50% + 14px);
   }
 }
+
+/* Notifications dialog */
+.dialog.notify { width: min(440px, 100%); gap: 14px; }
+.notify .share-note { margin: 0; }
+.notify-on { display: flex; align-items: center; gap: 8px; }
+.notify-main { align-self: flex-start; }
+.notify-box { border: 1px solid var(--line, rgba(128,128,128,.3)); border-radius: 12px; padding: 12px 14px; font-size: 13.5px; line-height: 1.5; }
+.notify-box p { margin: 6px 0; }
+.notify-box ol, .notify-box ul { margin: 6px 0 0; padding-left: 20px; display: grid; gap: 4px; }
+.notify-opts { display: grid; gap: 10px; }
+.notify-opt { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.notify-opt input { margin-top: 3px; }
+.notify-opt span { display: grid; gap: 2px; }
+.notify-opt small, .notify-reset small { opacity: .7; font-size: 12px; line-height: 1.4; }
+.notify-row { display: flex; gap: 8px; flex-wrap: wrap; }
+.notify-reset { display: grid; gap: 4px; justify-items: start; }
+.notify-note { margin: 0; font-size: 13px; color: var(--accent, inherit); }
+.notify-error { margin: 0; font-size: 13px; color: #e5484d; }
+
+/* Seven header buttons on the narrowest phones */
+@media (max-width: 420px) {
+  .topbar { padding-left: 10px; padding-right: 8px; }
+  .topbar-actions { gap: 3px; }
+  .btn-primary,
+  .btn-ghost,
+  .btn-ghost.icon-only { width: 30px; height: 30px; }
+  .btn-ghost svg,
+  .btn-primary svg { width: 17px; height: 17px; }
+}

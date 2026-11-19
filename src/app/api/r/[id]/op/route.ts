@@ -22,7 +22,7 @@ export async function POST(req: Request, { params }: Ctx) {
 
   const text = await req.text();
   if (text.length > MAX_IMPORT) return Response.json({ error: "too large" }, { status: 413 });
-  let body: { op?: unknown; tz?: unknown };
+  let body: { op?: unknown; tz?: unknown; device?: unknown };
   try {
     body = JSON.parse(text);
   } catch {
@@ -33,7 +33,8 @@ export async function POST(req: Request, { params }: Ctx) {
   if (op.t !== "replace" && text.length > MAX_BODY) return Response.json({ error: "too large" }, { status: 413 });
 
   try {
-    const room = await applyRoomOp(id, op, body.tz);
+    const device = typeof body.device === "string" && /^[w-]{6,40}$/.test(body.device) ? body.device : undefined;
+    const room = await applyRoomOp(id, op, body.tz, device);
     return Response.json({ ...room, serverTime: Date.now() }, { headers: { "Cache-Control": "no-store" } });
   } catch {
     return Response.json({ error: "busy" }, { status: 503, headers: { "Retry-After": "2" } });

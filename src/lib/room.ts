@@ -243,3 +243,57 @@ export function newOpId() {
   globalThis.crypto.getRandomValues(bytes);
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("");
 }
+
+// ---------- alerts: things worth a push notification ----------
+
+export type AlertKind = "done" | "break";
+
+export type Alert = {
+  /** Stable id of this particular event, for example "done:<topic>:<startedAt>". */
+  key: string;
+  kind: AlertKind;
+  /** When it is due (server clock, epoch ms). */
+  at: number;
+  topicId: string;
+  title: string;
+  /** For "done": the daily goal in ms. */
+  goalMs?: number;
+};
+
+/** How much of today's goal is used, counting a running timer. */
+export function spentToday(s: RoomState, topicId: string, now: number): number {
+  const t = s.topics.find((x) => x.id === topicId);
+  const key = dayKey(now, s.tz);
+  const booked = s.log[key]?.[topicId] ?? 0;
+  if (!t || t.startedAt == null) return booked;
+  return booked + Math.max(0, now - Math.max(t.startedAt, startOfDay(now, s.tz)));
+}
+
+/** True when the topic has used up its goal today. */
+export const doneToday = (s: RoomState, topicId: string, now: number) => {
+  const t = s.topics.find((x) => x.id === topicId);
+  return !!t && t.goalMs > 0 && spentToday(s, topicId, now) >= t.goalMs;
+};
+
+/**
+ * Events that will need a notification, given the room as it is now:
+ * - a running timer reaches its daily goal (only if that happens before the day ends)
+ * - a break reminder comes due
+ */
+export function dueAlerts(s: RoomState, now: number): Alert[] {
+  const out: Alert[] = [];
+  const dayEnd = startOfDay(startOfDay(now, s.tz) + 26 * 3600e3, s.tz);
+  for (const t of s.topics) {
+    if (t.archivedAt) continue;
+    if (t.startedAt != null) {
+      const left = t.goalMs - spentToday(s, t.id, now);
+      if (left > 0 && now + left < dayEnd) {
+        out.push({ key: `done:${t.id}:${t.startedAt}`, kind: "done", at: now + left, topicId: t.id, title: t.title, goalMs: t.goalMs });
+      }
+    }
+    if (t.breakUntil != null && t.breakUntil > now) {
+      out.push({ key: `break:${t.id}:${t.breakUntil}`, kind: "break", at: t.breakUntil, topicId: t.id, title: t.title });
+    }
+  }
+  return out;
+}

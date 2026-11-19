@@ -5,7 +5,20 @@
 
 import { promises as fs } from "node:fs";
 import path from "node:path";
-import type { RoomState } from "../room";
+import type { Alert, RoomState } from "../room";
+
+/** What a device wants to be told about. */
+export type PushPrefs = { done: boolean; brk: boolean; sync: boolean };
+
+/** One browser or phone that agreed to notifications for a room. */
+export type PushSub = {
+  endpoint: string;
+  keys: { p256dh: string; auth: string };
+  /** Random id kept in the device's storage, so it is not told about its own actions. */
+  device: string;
+  prefs: PushPrefs;
+  createdAt: number;
+};
 
 export type RoomRecord = {
   id: string;
@@ -14,6 +27,10 @@ export type RoomRecord = {
   state: RoomState;
   createdAt: number;
   updatedAt: number;
+  /** Devices to notify. Never sent to browsers. */
+  subs?: PushSub[];
+  /** Upcoming notifications (goal reached, break over). */
+  alerts?: Alert[];
 };
 
 export interface Store {
@@ -22,6 +39,10 @@ export interface Store {
   create(rec: RoomRecord): Promise<boolean>;
   /** Saves `rec` only if the stored revision is still `expectedRev`. Returns false when it moved on. */
   update(rec: RoomRecord, expectedRev: number): Promise<boolean>;
+  /** Changes only the notification fields, whatever the revision. */
+  patch(id: string, fields: { subs?: PushSub[]; alerts?: Alert[] }): Promise<void>;
+  /** Every room that has notifications waiting (used to restart the schedule after a restart). */
+  withAlerts(): Promise<RoomRecord[]>;
 }
 
 // ---------- files ----------
@@ -66,6 +87,24 @@ class FileStore implements Store {
     await this.write(rec);
     return true;
   }
+
+  async patch(id: string, fields: { subs?: PushSub[]; alerts?: Alert[] }) {
+    const cur = await this.get(id);
+    if (cur) await this.write({ ...cur, ...fields });
+  }
+
+  async withAlerts() {
+    await this.init();
+    const out: RoomRecord[] = [];
+    for (const f of await fs.readdir(this.dir).catch(() => [] as string[])) {
+      if (!f.endsWith(".json")) continue;
+      try {
+        const rec = JSON.parse(await fs.readFile(path.join(this.dir, f), "utf8")) as RoomRecord;
+        if (rec.alerts?.length) out.push(rec);
+      } catch {}
+    }
+    return out;
+  }
 }
 
 // ---------- MongoDB ----------
@@ -79,6 +118,8 @@ type Doc = {
   applied: string[];
   createdAt: Date;
   updatedAt: Date;
+  subs?: PushSub[];
+  alerts?: Alert[];
 };
 
 const toDoc = (r: RoomRecord): Doc => ({
@@ -90,6 +131,8 @@ const toDoc = (r: RoomRecord): Doc => ({
   applied: r.state.applied,
   createdAt: new Date(r.createdAt),
   updatedAt: new Date(r.updatedAt),
+  ...(r.subs ? { subs: r.subs } : {}),
+  alerts: r.alerts ?? [],
 });
 
 const fromDoc = (d: Doc): RoomRecord => ({
@@ -98,6 +141,8 @@ const fromDoc = (d: Doc): RoomRecord => ({
   state: { tz: d.tz, topics: d.topics, log: d.log, applied: d.applied },
   createdAt: d.createdAt.getTime(),
   updatedAt: d.updatedAt.getTime(),
+  subs: d.subs ?? [],
+  alerts: d.alerts ?? [],
 });
 
 class MongoStore implements Store {
@@ -138,9 +183,18 @@ class MongoStore implements Store {
 
   async update(rec: RoomRecord, expectedRev: number) {
     const { _id, ...fields } = toDoc(rec);
-    const { createdAt: _c, ...set } = fields;
+    const { createdAt: _c, subs: _s, ...set } = fields; // subscriptions are changed only through patch()
     const r = await (await this.collection()).updateOne({ _id, rev: expectedRev }, { $set: set });
     return r.matchedCount === 1;
+  }
+
+  async patch(id: string, fields: { subs?: PushSub[]; alerts?: Alert[] }) {
+    await (await this.collection()).updateOne({ _id: id }, { $set: fields });
+  }
+
+  async withAlerts() {
+    const docs = await (await this.collection()).find({ "alerts.0": { $exists: true } }).toArray();
+    return docs.map(fromDoc);
   }
 }
 

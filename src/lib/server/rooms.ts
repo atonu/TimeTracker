@@ -1,8 +1,10 @@
 // Server only. Loads a room, applies one operation to it and tells everyone watching.
 
-import { applyOp, emptyState, type Op, type RoomState } from "../room";
+import { applyOp, dueAlerts, emptyState, type Op, type RoomState } from "../room";
 import { validZone } from "../tracker";
 import { broadcast } from "./hub";
+import { locked } from "./lock";
+import { notifySync, reconcile } from "./push";
 import { getStore, type RoomRecord } from "./store";
 
 export type RoomView = { rev: number; state: RoomState };
@@ -13,26 +15,10 @@ export async function loadRoom(id: string) {
   return getStore().get(id);
 }
 
-// One change at a time per room, so two requests never read the same revision and overwrite each other.
-const g = globalThis as unknown as { __tickwellLocks?: Map<string, Promise<unknown>> };
-const locks = (g.__tickwellLocks ??= new Map());
-
-async function locked<T>(id: string, fn: () => Promise<T>): Promise<T> {
-  const prev = locks.get(id) ?? Promise.resolve();
-  const run = prev.then(fn, fn);
-  const tail = run.catch(() => {});
-  locks.set(id, tail);
-  try {
-    return await run;
-  } finally {
-    if (locks.get(id) === tail) locks.delete(id);
-  }
-}
-
 /** Operations that may create a room. Others on a missing room are ignored, so nothing empty is stored. */
 const CREATES = new Set(["save", "replace"]);
 
-export async function applyRoomOp(id: string, op: Op, tz: unknown): Promise<RoomView> {
+export async function applyRoomOp(id: string, op: Op, tz: unknown, device?: string): Promise<RoomView> {
   return locked(id, async () => {
     const store = getStore();
     for (let attempt = 0; attempt < 4; attempt++) {
@@ -51,10 +37,17 @@ export async function applyRoomOp(id: string, op: Op, tz: unknown): Promise<Room
       const next = applyOp(base.state, op, now);
       if (next === base.state) return view(base); // nothing changed, or already applied
 
-      const saved: RoomRecord = { ...base, rev: base.rev + 1, state: next, updatedAt: now };
+      // Notifications that will be due, so they survive a restart and can be scheduled.
+      const alerts = dueAlerts(next, now);
+      const saved: RoomRecord = { ...base, rev: base.rev + 1, state: next, updatedAt: now, alerts };
       const ok = isNew ? await store.create(saved) : await store.update(saved, base.rev);
       if (ok) {
         broadcast(id, "state", view(saved));
+        reconcile(id, alerts, next, now);
+        if (op.t === "start" || op.t === "pause") {
+          const title = next.topics.find((t) => t.id === op.id)?.title;
+          if (title) void notifySync(id, op.t, title, device).catch(() => {});
+        }
         return view(saved);
       }
     }

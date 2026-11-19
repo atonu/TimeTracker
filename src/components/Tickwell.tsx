@@ -39,7 +39,7 @@ type Modal =
   | { kind: "notify" }
   | null;
 
-export default function Tickwell({ roomId }: { roomId: string }) {
+export default function Tickwell({ roomId, demo = false }: { roomId: string; demo?: boolean }) {
   const {
     topics,
     log,
@@ -58,7 +58,7 @@ export default function Tickwell({ roomId }: { roomId: string }) {
     remove,
     purgeHistory,
     loadDemo,
-  } = useTracker(roomId);
+  } = useTracker(roomId, demo);
   const { theme, setTheme, bg, setBg } = useAppearance();
   const [modal, setModal] = useState<Modal>(null);
   const [leaving, setLeaving] = useState<Set<string>>(new Set());
@@ -67,7 +67,7 @@ export default function Tickwell({ roomId }: { roomId: string }) {
   const [tour, setTour] = useState(false);
   useEffect(() => {
     try {
-      if (!localStorage.getItem("timetracker:onboarded")) setTour(true);
+      if (!demo && !localStorage.getItem("timetracker:onboarded")) setTour(true);
     } catch {}
   }, []);
   const endTour = useCallback(() => {
@@ -690,8 +690,8 @@ export default function Tickwell({ roomId }: { roomId: string }) {
           </div>
         </div>
       )}
-      {modal?.kind === "notify" && <NotificationsDialog roomId={roomId} onClose={close} />}
-      {modal?.kind === "share" && (
+      {!demo && modal?.kind === "notify" && <NotificationsDialog roomId={roomId} onClose={close} />}
+      {!demo && modal?.kind === "share" && (
         <ShareDialog url={`${window.location.origin}/${roomId}`} status={status} onClose={close} />
       )}
       {modal?.kind === "help" && (

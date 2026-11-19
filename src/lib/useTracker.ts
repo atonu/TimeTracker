@@ -45,7 +45,7 @@ const write = (key: string, value: unknown) => {
  * - `pending` are changes made here that the server has not confirmed yet. They are shown at once
  *   (optimistically), kept in localStorage so they survive a reload, and re-sent until accepted.
  */
-export function useTracker(roomId: string) {
+export function useTracker(roomId: string, demo = false) {
   const [confirmed, setConfirmed] = useState<Confirmed | null>(null);
   const [pending, setPending] = useState<Op[]>([]);
   const [status, setStatus] = useState<SyncStatus>("connecting");
@@ -64,9 +64,9 @@ export function useTracker(roomId: string) {
     (next: Op[]) => {
       pendingRef.current = next;
       setPending(next);
-      write(queueKey, next);
+      if (!demo) write(queueKey, next);
     },
-    [queueKey],
+    [queueKey, demo],
   );
 
   /** Adopts a newer server state and forgets the pending changes it already contains. */
@@ -138,15 +138,25 @@ export function useTracker(roomId: string) {
     (body: OpBody) => {
       const op = { ...body, opId: newOpId(), at: Date.now() + offset.current } as Op;
       const event = TRACKED[body.t];
-      if (event) track(event);
+      if (event && !demo) track(event);
       setQueue([...pendingRef.current, op]);
-      void flush();
+      if (!demo) void flush(); // the sample room never talks to the server
     },
-    [flush, setQueue],
+    [flush, setQueue, demo],
   );
 
   // ---------- receiving ----------
   useEffect(() => {
+    if (demo) {
+      // The sample room: fixed example data, kept in memory only, never saved or synced.
+      const d = demoData(Date.now());
+      const c = { rev: 1, state: { ...emptyState(tz.current), topics: d.topics, log: d.log } };
+      confirmedRef.current = c;
+      setConfirmed(c);
+      setStatus("live");
+      setLoaded(true);
+      return;
+    }
     const cached = read<Confirmed>(cacheKey);
     if (cached?.state) {
       confirmedRef.current = cached;
@@ -252,7 +262,7 @@ export function useTracker(roomId: string) {
       document.removeEventListener("visibilitychange", wake);
       window.removeEventListener("online", online);
     };
-  }, [roomId, cacheKey, queueKey, accept, flush, dispatch]);
+  }, [roomId, cacheKey, queueKey, accept, flush, dispatch, demo]);
 
   // ---------- derived state ----------
   const base = useMemo(() => confirmed?.state ?? emptyState(tz.current), [confirmed]);

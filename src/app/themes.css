@@ -2162,3 +2162,23 @@ button.rem-custom-link:hover {
   .btn-ghost svg,
   .btn-primary svg { width: 17px; height: 17px; }
 }
+
+/* Dense (compact size) also in scroll phases 2 and 3: same narrower columns and smaller cards */
+@media (min-width: 641px) {
+  .scroller[data-dense][data-compact] {
+    --date-w: 120px;
+    --col-w: 320px;
+    --card-w: 300px;
+    --card-h: min(170px, clamp(124px, calc(40dvh - 110px), 220px));
+    --time: calc(var(--card-h) * 0.3);
+    --btn: 30px;
+    --btn-edge: 14px;
+  }
+  .scroller[data-dense][data-compact] .card {
+    padding: 16px;
+  }
+  .scroller[data-dense][data-tiny] {
+    --card-h: min(130px, clamp(120px, calc(20dvh - 58px), 142px));
+    --time: calc(var(--card-h) * 0.3);
+  }
+}

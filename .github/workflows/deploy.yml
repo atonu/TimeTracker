@@ -76,9 +76,9 @@ jobs:
           HOST_PORT: ${{ vars.HOST_PORT || '3000' }}
           MONGODB_URI: ${{ secrets.MONGODB_URI }}
           MONGODB_DB: ${{ vars.MONGODB_DB }}
-          VAPID_PUBLIC_KEY: ${{ vars.VAPID_PUBLIC_KEY }}
+          VAPID_PUBLIC_KEY: ${{ vars.VAPID_PUBLIC_KEY || secrets.VAPID_PUBLIC_KEY }}
           VAPID_PRIVATE_KEY: ${{ secrets.VAPID_PRIVATE_KEY }}
-          VAPID_SUBJECT: ${{ vars.VAPID_SUBJECT }}
+          VAPID_SUBJECT: ${{ vars.VAPID_SUBJECT || secrets.VAPID_SUBJECT }}
         run: |
           ssh -i ~/.ssh/id_deploy -p "${{ secrets.SSH_PORT || 22 }}" \
             "${{ secrets.SSH_USER }}@${{ secrets.SSH_HOST }}" \

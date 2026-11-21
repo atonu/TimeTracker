@@ -157,15 +157,32 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
       if (reduce) return;
       el.setAttribute("data-gliding", ""); // lets the cards and column labels travel outside their box
       const opt: KeyframeAnimationOptions = { duration: 600, easing: "cubic-bezier(0.22, 0.8, 0.25, 1)" };
+      // Each card first changes size where it stands, then travels to its new place. Its contents
+      // fade out while the box resizes and back in on the way, so they never visibly snap.
+      const SIZE = 0.45;
       cards.forEach((c, i) => {
         const a = from[i];
         const b = to[i];
+        const at = `translate(${a.left - b.left}px, ${a.top - b.top}px)`;
         c.animate(
           [
-            { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)`, width: `${a.width}px`, height: `${a.height}px` },
-            { transform: "none", width: `${b.width}px`, height: `${b.height}px` },
+            { transform: at, width: `${a.width}px`, height: `${a.height}px`, offset: 0 },
+            { transform: at, width: `${b.width}px`, height: `${b.height}px`, offset: SIZE },
+            { transform: "none", width: `${b.width}px`, height: `${b.height}px`, offset: 1 },
           ],
           opt,
+        );
+        Array.from(c.children).forEach((k) =>
+          (k as HTMLElement).animate(
+            [
+              { opacity: 1, offset: 0 },
+              { opacity: 0, offset: 0.2 },
+              { opacity: 0, offset: SIZE },
+              { opacity: 1, offset: 0.75 },
+              { opacity: 1, offset: 1 },
+            ],
+            { duration: opt.duration as number, easing: "linear" },
+          ),
         );
       });
       topbar?.animate([{ height: `${topH}px` }, { height: `${topH2}px` }], opt);

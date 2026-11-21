@@ -25,6 +25,8 @@ const MIN_DAYS = 14;
 // Two thresholds (hysteresis) so the layout can never flip back and forth while scrolling.
 const COMPACT_AFTER = 30;
 const TINY_AFTER = 460; // scroll distance of the whole phase: cards go from 85% to 20%
+// On phones the middle phase is skipped: the first scroll goes straight to the smallest cards.
+const tinyAt = () => (typeof window !== "undefined" && window.matchMedia("(max-width: 640px)").matches ? COMPACT_AFTER : TINY_AFTER);
 const FLY_MS = 320;
 const FADE_MS = 260; // cross-fade out
 const ENTER_MS = 400; // cross-fade in
@@ -140,7 +142,7 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
       const stickyH2 = sticky?.offsetHeight ?? 0;
       el.removeAttribute("data-noanim");
       if (reduce) return;
-      const opt: KeyframeAnimationOptions = { duration: 480, easing: "cubic-bezier(0.22, 0.8, 0.25, 1)" };
+      const opt: KeyframeAnimationOptions = { duration: 1200, easing: "cubic-bezier(0.22, 0.8, 0.25, 1)" };
       cards.forEach((c, i) => {
         const a = from[i];
         const b = to[i];
@@ -172,7 +174,7 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
         if (wantCompact) el.setAttribute("data-compact", "");
         else el.removeAttribute("data-compact");
       }
-      if (p >= TINY_AFTER) el.setAttribute("data-tiny", "");
+      if (p >= tinyAt()) el.setAttribute("data-tiny", "");
       else el.removeAttribute("data-tiny");
     };
 
@@ -194,8 +196,8 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
         }
       }
       if (dy > 0) {
-        if (phase.current < TINY_AFTER) {
-          phase.current = Math.min(TINY_AFTER, phase.current + dy);
+        if (phase.current < tinyAt()) {
+          phase.current = Math.min(tinyAt(), phase.current + dy);
           applyPhase();
         } else {
           sheet.scrollTop += dy;
@@ -254,7 +256,7 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
     // The history has its own scrollbars. Before phase 3 the table must not move, so a dragged
     // scrollbar is held at the top; the cards line up with the columns sideways.
     const onSheetScroll = () => {
-      if (phase.current < TINY_AFTER && sheet.scrollTop > 0) sheet.scrollTop = 0;
+      if (phase.current < tinyAt() && sheet.scrollTop > 0) sheet.scrollTop = 0;
       if (block.current) block.current.scrollLeft = sheet.scrollLeft;
     };
     sheet.addEventListener("scroll", onSheetScroll, { passive: true });

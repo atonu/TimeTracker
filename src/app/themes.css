@@ -3008,3 +3008,74 @@ button.rem-custom-link:hover {
     --btn: 28px;
   }
 }
+
+/* Phone: the Goals button sits at the far left, under the title */
+@media (max-width: 640px) {
+  .goals-fab {
+    align-self: flex-start;
+  }
+}
+
+/* No visible panel behind the Goals button */
+.cards-row > .corner {
+  background: transparent;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+/* "Add as topics" must show its whole label, also on phones */
+.notepad-foot .btn-primary {
+  width: auto;
+  min-width: max-content;
+  padding: 0 20px;
+  border-radius: 999px;
+  justify-content: center;
+  flex: none;
+  white-space: nowrap;
+}
+.notepad-foot .notepad-note {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.notepad-foot .btn-primary {
+  height: 40px;
+}
+
+/* Phone, first phase: only the table's header and its first row peek out at the bottom */
+@media (max-width: 640px) {
+  .scroller:not([data-compact]) .sticky-top {
+    height: calc(100dvh - 76px - 48px - 46px);
+  }
+  .scroller:not([data-compact]) .sheet-scroll {
+    flex: none;
+    height: 46px;
+    overflow: hidden;
+  }
+}
+
+/* Phone, first phase: the Goals button floats over the board like in phase 2, taking no row of its own */
+@media (max-width: 640px) {
+  .goals-fab {
+    position: absolute;
+    top: 4px;
+    left: 16px;
+    z-index: 45;
+    margin: 0;
+    align-self: auto;
+  }
+  .scroller:not([data-compact]) .sticky-top {
+    height: calc(100dvh - 76px - 46px);
+  }
+}
+
+/* First phase: some air above the cards */
+.scroller:not([data-compact]) .sticky-top > .cards-row {
+  padding-top: 16px;
+}
+@media (max-width: 640px) {
+  .scroller:not([data-compact]) .sticky-top > .cards-row {
+    padding-top: 52px; /* also keeps the first row clear of the floating Goals button */
+  }
+}

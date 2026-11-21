@@ -102,6 +102,18 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
   // Floating eye button above the table: shows on hover, stays 5 s, resets on interaction.
   const [eyeOn, setEyeOn] = useState(false);
   const eyeTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // In the first phase only one table row peeks out: hovering it shows a scroll hint for 5 seconds.
+  const [hint, setHint] = useState(false);
+  const hintTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const showHint = () => {
+    if (hint || scroller.current?.hasAttribute("data-compact")) return;
+    setHint(true);
+    hintTimer.current = setTimeout(() => setHint(false), 5000);
+  };
+  useEffect(() => () => {
+    if (hintTimer.current) clearTimeout(hintTimer.current);
+  }, []);
   const eyeHold = () => {
     if (eyeTimer.current) clearTimeout(eyeTimer.current);
     setEyeOn(true);
@@ -133,16 +145,18 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
       const from = cards.map((c) => c.getBoundingClientRect());
       const sheetTop = sheet.getBoundingClientRect().top;
       const topH = topbar?.offsetHeight ?? 0;
-      const stickyH = sticky?.offsetHeight ?? 0;
+      const head = el.querySelector<HTMLElement>(".head-row");
+      const headTop = head?.getBoundingClientRect().top ?? 0;
       el.setAttribute("data-noanim", "");
       change();
       const to = cards.map((c) => c.getBoundingClientRect());
       const sheetTop2 = sheet.getBoundingClientRect().top;
       const topH2 = topbar?.offsetHeight ?? 0;
-      const stickyH2 = sticky?.offsetHeight ?? 0;
+      const headTop2 = head?.getBoundingClientRect().top ?? 0;
       el.removeAttribute("data-noanim");
       if (reduce) return;
-      const opt: KeyframeAnimationOptions = { duration: 1200, easing: "cubic-bezier(0.22, 0.8, 0.25, 1)" };
+      el.setAttribute("data-gliding", ""); // lets the cards and column labels travel outside their box
+      const opt: KeyframeAnimationOptions = { duration: 600, easing: "cubic-bezier(0.22, 0.8, 0.25, 1)" };
       cards.forEach((c, i) => {
         const a = from[i];
         const b = to[i];
@@ -155,8 +169,14 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
         );
       });
       topbar?.animate([{ height: `${topH}px` }, { height: `${topH2}px` }], opt);
-      sticky?.animate([{ height: `${stickyH}px` }, { height: `${stickyH2}px` }], opt);
-      sheet.animate([{ transform: `translateY(${sheetTop - sheetTop2}px)` }, { transform: "none" }], opt);
+      head?.animate([{ transform: `translateY(${headTop - headTop2}px)` }, { transform: "none" }], opt);
+      const last = sheet.animate([{ transform: `translateY(${sheetTop - sheetTop2}px)` }, { transform: "none" }], opt);
+      last.finished
+        .catch(() => {})
+        .then(() => {
+          el.removeAttribute("data-gliding");
+          if (sticky && el.hasAttribute("data-compact")) sticky.scrollLeft = sheet.scrollLeft;
+        });
     };
 
     const applyPhase = () => {
@@ -666,8 +686,22 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
               </div>
             </div>
 
+            {hint && (
+              <div className="scroll-hint" aria-hidden>
+                <span className="hint-chevs">
+                  <svg viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" /></svg>
+                  <svg viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" /></svg>
+                </span>
+                Scroll
+                <span className="hint-chevs">
+                  <svg viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" /></svg>
+                  <svg viewBox="0 0 24 24" width="14" height="14"><path d="M6 9l6 6 6-6" /></svg>
+                </span>
+              </div>
+            )}
+
             {/* History: scrolled by the page controller, not the browser */}
-            <div className="sheet-scroll" ref={sheetScroll}>
+            <div className="sheet-scroll" ref={sheetScroll} onPointerEnter={showHint}>
               <div className="sheet">
                 {n > 0 && (
                   <div className="grid row total-row">

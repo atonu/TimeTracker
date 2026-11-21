@@ -3066,7 +3066,7 @@ button.rem-custom-link:hover {
     align-self: auto;
   }
   .scroller:not([data-compact]) .sticky-top {
-    height: calc(100dvh - 76px - 46px);
+    height: calc(100dvh - 64px - var(--peek, 46px));
   }
 }
 
@@ -3078,4 +3078,81 @@ button.rem-custom-link:hover {
   .scroller:not([data-compact]) .sticky-top > .cards-row {
     padding-top: 52px; /* also keeps the first row clear of the floating Goals button */
   }
+}
+
+/* First phase, all screens: only the table's header and its first row peek out at the bottom */
+.scroller:not([data-compact]) .sticky-top {
+  height: calc(100dvh - 76px - 56px - var(--peek, 46px));
+}
+.scroller:not([data-compact]) .sheet-scroll {
+  flex: none;
+  height: var(--peek, 46px);
+  overflow: hidden;
+}
+@media (max-width: 640px) {
+  .scroller:not([data-compact]) .sticky-top {
+    height: calc(100dvh - 64px - var(--peek, 46px));
+  }
+}
+
+/* Scroll hint over the peeking table row */
+.scroll-hint {
+  position: absolute;
+  left: 50%;
+  bottom: 10px;
+  z-index: 50;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: var(--ink);
+  color: var(--on-ink);
+  font-size: 13px;
+  font-weight: 600;
+  pointer-events: none;
+  transform: translateX(-50%);
+  animation: hint-in 0.25s ease-out, hint-out 0.3s ease-in 4.7s forwards;
+  box-shadow: var(--shadow-md);
+}
+.hint-chevs {
+  display: inline-flex;
+  flex-direction: column;
+  align-items: center;
+  line-height: 0;
+}
+.hint-chevs svg {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 2.5;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  animation: hint-bob 1s ease-in-out infinite;
+}
+.hint-chevs svg + svg {
+  margin-top: -6px;
+  animation-delay: 0.15s;
+}
+@keyframes hint-bob {
+  0%, 100% { opacity: 0.35; transform: translateY(-1px); }
+  50% { opacity: 1; transform: translateY(2px); }
+}
+@keyframes hint-in {
+  from { opacity: 0; transform: translateX(-50%) translateY(6px); }
+}
+@keyframes hint-out {
+  to { opacity: 0; }
+}
+.scroller[data-compact] .scroll-hint {
+  display: none;
+}
+@media (min-width: 641px) {
+  .scroller { --peek: 66px; }
+}
+
+/* While the phase change glides, nothing is clipped and no shadow shows: the labels and the table
+   travel up together, so no blank band opens below the cards */
+.scroller[data-gliding] .sticky-top {
+  overflow: visible;
+  box-shadow: none;
 }

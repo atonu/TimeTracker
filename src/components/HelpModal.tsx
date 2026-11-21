@@ -53,6 +53,28 @@ export default function HelpModal({ onClose, onTour }: { onClose: () => void; on
         </section>
 
         <section>
+          <h3>Goals, Signal and Noise</h3>
+          <ol className="help-steps">
+            <li>
+              <b>Open Goals</b> (the round notes button) and jot your goals for the day, one bullet per line. Press
+              Enter for the next one.
+            </li>
+            <li>
+              <b>Add as topics</b> turns every bullet into a 1 hour topic. Goals that already exist are skipped. Notes
+              stay on this device.
+            </li>
+            <li>
+              <b>Signal or Noise:</b> mark a topic as Signal (focused work, with a colour of your choice) or Noise (everything
+              else, always light gray) when you create or edit it.
+            </li>
+            <li>
+              <b>Scroll down</b> to fold the cards into one row and give the table more room. Scroll back up to
+              unfold them.
+            </li>
+          </ol>
+        </section>
+
+        <section>
           <h3>Share and sync</h3>
           <ol className="help-steps">
             <li>

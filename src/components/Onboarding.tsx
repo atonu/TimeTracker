@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { BRAND } from "@/lib/brand";
-import { ArchiveIcon, BrushIcon, ChevronIcon, PlayIcon, PlusIcon } from "./icons";
+import { ArchiveIcon, BrushIcon, ChevronIcon, NotesIcon, PlayIcon, PlusIcon } from "./icons";
 
 const STEPS = [
   {
@@ -14,6 +14,11 @@ const STEPS = [
     icon: <PlusIcon size={34} />,
     title: "Create a topic",
     body: "Tap Create Topic for anything you spend time on: study, work, gym, reading. Give it a colour and a daily time allowance.",
+  },
+  {
+    icon: <NotesIcon size={34} />,
+    title: "Jot down your goals",
+    body: "Open Goals, write one goal per line and press Add as topics to turn them all into 1 hour topics. Mark each topic as Signal (focused work) or Noise.",
   },
   {
     icon: <PlayIcon />,

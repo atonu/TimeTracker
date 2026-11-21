@@ -21,6 +21,7 @@ export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props)
   const initial = Math.round((topic?.goalMs ?? 30 * 60e3) / 60000);
   const [hours, setHours] = useState(Math.floor(initial / 60));
   const [minutes, setMinutes] = useState(initial % 60);
+  const [kind, setKind] = useState<"signal" | "noise">(topic?.kind ?? "signal");
   const titleRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props)
       title: title.trim(),
       color,
       goalMs: totalMin * 60000,
+      kind,
       startedAt: topic?.startedAt ?? null,
     });
     onClose();
@@ -112,6 +114,24 @@ export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props)
             {PRESETS.map((m) => (
               <button type="button" key={m} className={`chip${m === totalMin ? " on" : ""}`} onClick={() => setTotal(m)}>
                 {m < 60 ? `${m}m` : `${m / 60}h`}
+              </button>
+            ))}
+          </div>
+        </div>
+
+        <div className="field">
+          <span>Category</span>
+          <div className="kind-toggle" role="radiogroup" aria-label="Category">
+            {(["signal", "noise"] as const).map((k) => (
+              <button
+                type="button"
+                key={k}
+                role="radio"
+                aria-checked={kind === k}
+                className={`kind-opt ${k}${kind === k ? " on" : ""}`}
+                onClick={() => setKind(k)}
+              >
+                {k === "signal" ? "Signal" : "Noise"}
               </button>
             ))}
           </div>

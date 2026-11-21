@@ -4,6 +4,8 @@ export type Topic = {
   color: string;
   /** Daily time budget in milliseconds. */
   goalMs: number;
+  /** Signal (focused work) or Noise. Missing means signal. */
+  kind?: "signal" | "noise";
   /** Epoch ms when the timer was started, or null when paused. */
   startedAt: number | null;
   /** Set when archived (or deleted); archived columns sort to the end by this time. */

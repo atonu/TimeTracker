@@ -63,6 +63,7 @@ export function sanitizeTopic(x: unknown, full = false): Topic | null {
     color: typeof o.color === "string" && /^#[0-9a-fA-F]{3,8}$/.test(o.color) ? o.color : COLORS[0],
     goalMs: Math.round(o.goalMs),
     startedAt: null,
+    kind: o.kind === "noise" ? "noise" : "signal",
   };
   if (full) {
     if (isNum(o.startedAt, 0, TIME_MAX)) t.startedAt = o.startedAt;
@@ -182,7 +183,7 @@ function change(s: RoomState, op: Op, now: number): RoomState {
       const topic = op.topic;
       if (s.topics.some((t) => t.id === topic.id)) {
         // only the fields the dialog edits, so it never overwrites a timer, archive or hidden change made elsewhere
-        return mapTopic(s, topic.id, (t) => ({ ...t, title: topic.title, color: topic.color, goalMs: topic.goalMs }));
+        return mapTopic(s, topic.id, (t) => ({ ...t, title: topic.title, color: topic.color, goalMs: topic.goalMs, kind: topic.kind }));
       }
       return s.topics.length >= MAX_TOPICS ? s : { ...s, topics: [...s.topics, { ...topic, startedAt: null }] };
     }

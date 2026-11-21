@@ -167,3 +167,12 @@ export const CopyIcon = ({ size = 16 }: { size?: number }) => (
     <path d="M5 15V6.5A2.5 2.5 0 0 1 7.5 4H15" />
   </svg>
 );
+
+export const NotesIcon = ({ size = 18 }: { size?: number }) => (
+  <svg {...base} width={size} height={size}>
+    <path d="M12 21H6a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h8l4 4v3" />
+    <path d="M14 3v4h4" />
+    <path d="M8 11h5M8 15h3" />
+    <path d="M20.4 13.6a1.8 1.8 0 0 1 0 2.5L15 21.5l-3.5.5.5-3.5 5.4-5.4a1.8 1.8 0 0 1 2.5 0z" />
+  </svg>
+);

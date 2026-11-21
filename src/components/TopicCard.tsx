@@ -154,7 +154,7 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
     <div
       ref={cardRef}
       onClick={onCardClick}
-      className={`card${running ? " running" : ""}${done ? " complete" : ""}${ringing ? " ringing" : ""}${ask !== "off" ? " asking" : ""}${toolsOpen ? " tools-open" : ""}`}
+      className={`card${topic.kind === "noise" ? " noise" : " signal"}${running ? " running" : ""}${done ? " complete" : ""}${ringing ? " ringing" : ""}${ask !== "off" ? " asking" : ""}${toolsOpen ? " tools-open" : ""}`}
     >
       <TickFrame progress={progress} />
 

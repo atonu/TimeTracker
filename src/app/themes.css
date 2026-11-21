@@ -2439,3 +2439,399 @@ button.rem-custom-link:hover {
 @media (max-width: 640px) {
   .scroller[data-tiny] { --btn-edge: 10px; }
 }
+
+/* ───────── Goals, categories and the wrapped first phase ───────── */
+
+/* While the layout glides, nothing else may transition (the measurements must be final) */
+.scroller[data-noanim],
+.scroller[data-noanim] * {
+  transition: none !important;
+}
+
+.board {
+  position: relative;
+}
+
+/* Goals button: a round button under the logo (first phase) */
+.goals-fab {
+  flex: none;
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  height: 40px;
+  margin: 0 28px 4px;
+  padding: 0 18px 0 14px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.goals-fab:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+.scroller[data-compact] .goals-fab {
+  display: none;
+}
+
+/* In the scrolled phases the Goals card is the first item of the cards row */
+.goals-card {
+  display: none;
+}
+.scroller[data-compact] .goals-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  width: calc(100% - 24px);
+  height: var(--card-h);
+  margin: 0 auto;
+  border: 0;
+  border-radius: var(--radius);
+  background: var(--paper);
+  color: var(--ink);
+  font-size: 14px;
+  font-weight: 600;
+  box-shadow: var(--shadow-sm);
+}
+.scroller[data-compact] .goals-card:hover {
+  box-shadow: var(--shadow-md);
+}
+.scroller[data-tiny] .goals-card {
+  flex-direction: row;
+  gap: 6px;
+  font-size: 13px;
+}
+.scroller[data-tiny] .goals-card svg {
+  width: 16px;
+  height: 16px;
+}
+
+/* First phase: the cards wrap in rows, 4 per row on PC */
+.scroller:not([data-compact]) .sticky-top {
+  /* top 85% of the window: top bar + Goals button + this block; the history keeps the bottom 15% */
+  height: calc(85dvh - 76px - 44px);
+  display: flex;
+  flex-direction: column;
+}
+.scroller:not([data-compact]) .sticky-top > .head-row {
+  flex: none;
+}
+.scroller:not([data-compact]) .sticky-top > .cards-row {
+  flex: 1 1 0;
+  min-height: 0;
+  overflow-y: auto;
+  scrollbar-width: none;
+}
+.scroller:not([data-compact]) .sticky-top > .cards-row::-webkit-scrollbar {
+  display: none;
+}
+.scroller:not([data-compact]) .sticky-top > .cards-row {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-content: safe center; /* rows sit in the middle of the space */
+  gap: 16px;
+  height: auto;
+  width: 100%;
+  min-width: 0;
+  padding: 8px 28px 20px;
+  --card-w: calc((100cqw - 56px - 48px) / 4);
+  --card-h: 190px;
+  --time: 54px;
+}
+.scroller:not([data-compact]) .cards-row > :not(.card-cell) {
+  display: none;
+}
+.scroller:not([data-compact]) .cards-row .card-cell {
+  flex: 0 0 var(--card-w);
+}
+.scroller:not([data-compact]) .cards-row .card {
+  width: 100%;
+}
+@media (max-width: 640px) {
+  .goals-fab {
+    align-self: flex-end;
+    width: 40px;
+    padding: 0;
+    justify-content: center;
+    margin: -4px 16px 4px;
+  }
+  .goals-fab span {
+    display: none;
+  }
+  .scroller:not([data-compact]) .sticky-top {
+    height: calc(85dvh - 76px - 40px);
+  }
+  .scroller:not([data-compact]) .sticky-top > .cards-row {
+    gap: 12px;
+    padding: 6px 16px 16px;
+    --card-w: calc((100cqw - 32px - 12px) / 2);
+    --card-h: 168px;
+    --time: 30px;
+  }
+  .scroller[data-compact] .goals-card {
+    width: calc(100% - 16px);
+  }
+  .scroller[data-compact] .goals-card span {
+    font-size: 12px;
+  }
+}
+
+/* Signal topics carry a green glow under the card */
+.card.signal {
+  box-shadow: var(--shadow-sm), 0 14px 18px -12px rgba(52, 199, 100, 0.7);
+}
+.card.signal:hover,
+.card.signal.running {
+  box-shadow: var(--shadow-md), 0 16px 22px -12px rgba(40, 180, 90, 0.85);
+}
+
+/* Category toggle in the topic dialog */
+.kind-toggle {
+  display: inline-grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 4px;
+  padding: 4px;
+  border-radius: 999px;
+  background: var(--soft);
+}
+.kind-opt {
+  height: 34px;
+  border: 0;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 14px;
+  font-weight: 600;
+}
+.kind-opt.on {
+  background: var(--paper);
+  color: var(--ink);
+  box-shadow: var(--shadow-sm);
+}
+.kind-opt.signal.on {
+  box-shadow: var(--shadow-sm), inset 0 -2px 0 #22c55e;
+}
+
+/* Notepad */
+.dialog.notepad {
+  width: min(460px, 100%);
+  gap: 14px;
+  padding: 22px 22px 18px;
+}
+.notepad-head {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 12px;
+}
+.notepad-head h2 {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.notepad-head small {
+  color: var(--muted);
+}
+.notepad-sheet {
+  --lh: 36px;
+  position: relative;
+  min-height: calc(var(--lh) * 7);
+  max-height: 50dvh;
+  overflow-y: auto;
+  padding: 0 0 0 34px;
+  border-radius: 8px;
+  background-color: var(--soft);
+  background-image:
+    linear-gradient(to right, transparent 26px, color-mix(in srgb, #ef4444 45%, transparent) 26px, color-mix(in srgb, #ef4444 45%, transparent) 27px, transparent 27px),
+    repeating-linear-gradient(to bottom, transparent 0, transparent calc(var(--lh) - 1px), var(--line) calc(var(--lh) - 1px), var(--line) var(--lh));
+  background-attachment: local;
+}
+.note-line {
+  position: relative;
+  display: flex;
+  align-items: center;
+  height: var(--lh);
+}
+.note-dot {
+  position: absolute;
+  left: -18px;
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--ink);
+}
+.note-line input {
+  width: 100%;
+  height: var(--lh);
+  padding: 0 12px 0 0;
+  border: 0;
+  outline: 0;
+  background: transparent;
+  color: var(--ink);
+  font: inherit;
+  font-size: 15px;
+}
+.note-line input::placeholder {
+  color: var(--faint);
+}
+.notepad-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.notepad-note {
+  min-width: 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.notepad-foot .btn-primary {
+  flex: none;
+  white-space: nowrap;
+}
+.notepad-foot .btn-primary:disabled {
+  opacity: 0.45;
+  cursor: default;
+}
+.note-line input:focus,
+.note-line input:focus-visible {
+  outline: 0;
+  border: 0;
+  box-shadow: none;
+  border-radius: 0;
+}
+.goals-card svg {
+  flex: none;
+}
+
+/* Phase 3: more air between the cards and the history header */
+.scroller[data-tiny] .cards-row {
+  padding-bottom: 14px;
+}
+.scroller[data-tiny] {
+  --card-h: clamp(88px, calc(20dvh - 92px), 118px);
+}
+@media (max-width: 640px) {
+  .scroller[data-tiny] {
+    --card-h: clamp(80px, calc(20dvh - 84px), 108px);
+  }
+}
+.notepad-foot .notepad-note {
+  flex: 1 1 auto;
+  text-align: center;
+}
+.notepad-foot .cancel-btn {
+  flex: none;
+}
+
+/* ───────── Phase 3 (smallest cards), desktop: one clean line, nothing overlapping ─────────
+   title on the left, countdown in the middle, play button on the right. */
+@media (min-width: 641px) {
+  .scroller[data-tiny] .card {
+    padding: 0;
+  }
+  .scroller[data-tiny] .card-body {
+    position: absolute;
+    inset: 0;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+  .scroller[data-tiny] .time {
+    font-size: min(var(--time), calc(var(--card-h) * 0.4));
+    line-height: 1;
+  }
+  .scroller[data-tiny] .card-head {
+    top: 50%;
+    left: 28px;
+    right: auto;
+    height: 24px;
+    transform: translateY(-50%);
+    max-width: calc(50% - 76px);
+    z-index: 2;
+  }
+  .scroller[data-tiny] .card-head .card-title {
+    min-width: 0;
+    max-width: 100%;
+  }
+  /* on hover the tools take the title's place */
+  .scroller[data-tiny] .card-tools {
+    position: static;
+    margin: 0;
+  }
+  .scroller[data-tiny] .card:hover .card-head .card-title,
+  .scroller[data-tiny] .card.tools-open .card-head .card-title {
+    display: none;
+  }
+  .scroller[data-tiny] .play-wrap {
+    top: 50%;
+    transform: translateY(-50%);
+  }
+  .scroller[data-tiny] .card-foot {
+    display: none;
+  }
+  /* a running break reminder replaces the title instead of squeezing in */
+  .scroller[data-tiny] .card:has(.meta.break) .card-head {
+    display: none;
+  }
+  .scroller[data-tiny] .card:has(.meta.break) .card-foot {
+    display: flex;
+    position: absolute;
+    left: 28px;
+    top: 50%;
+    transform: translateY(-50%);
+    max-width: calc(50% - 76px);
+  }
+}
+@media (min-width: 641px) {
+  .scroller[data-tiny] .card-head {
+    width: calc(50% - 76px);
+    max-width: none;
+  }
+  .scroller[data-tiny] .card-head .card-title {
+    flex: 1 1 0;
+  }
+  .scroller[data-tiny] .card-tools {
+    position: absolute;
+    left: 20px;
+    top: 0;
+    bottom: 0;
+    margin: auto 0;
+    height: fit-content;
+  }
+}
+
+/* Phase 3 on phones: the countdown stays clear of the play button */
+@media (max-width: 640px) {
+  .scroller[data-tiny] .time {
+    font-size: min(var(--time), 17px);
+  }
+  .scroller[data-tiny] .card-body {
+    justify-content: flex-start;
+    padding-left: 14px;
+  }
+}
+
+/* The expand button is not needed in the smallest phase */
+.scroller[data-tiny] ~ .dense-rail-fixed {
+  display: none;
+}
+
+/* Compact size in phase 1: the wrapped cards shrink a bit */
+@media (min-width: 641px) {
+  .scroller[data-dense]:not([data-compact]) .sticky-top > .cards-row {
+    gap: 12px;
+    --card-w: calc((100cqw - 56px - 36px) / 4);
+    --card-h: 150px;
+    --time: 42px;
+  }
+}

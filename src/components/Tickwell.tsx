@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { playBurst, playChime, stopSound, unlockAudio } from "@/lib/alarm";
-import { dayKey, fmtDuration, isRinging, keyToDate, shiftKey, type Topic } from "@/lib/tracker";
+import { COLORS, dayKey, fmtDuration, isRinging, keyToDate, shiftKey, uid, type Topic } from "@/lib/tracker";
 import { useAppearance } from "@/lib/useAppearance";
 import { useRouter } from "next/navigation";
 import { newRoomId } from "@/lib/room";
@@ -13,7 +13,8 @@ import Onboarding from "./Onboarding";
 import ArchiveDialog from "./ArchiveDialog";
 import ColumnLabel from "./ColumnLabel";
 import ColumnsPanel from "./ColumnsPanel";
-import { AlarmIcon, ArchiveIcon, BrushIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, PlusIcon, ShareIcon, BellIcon } from "./icons";
+import { AlarmIcon, ArchiveIcon, BrushIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, PlusIcon, ShareIcon, BellIcon, NotesIcon } from "./icons";
+import GoalsDialog from "./GoalsDialog";
 import ShareDialog from "./ShareDialog";
 import { track } from "@/lib/analytics";
 import NotificationsDialog from "./NotificationsDialog";
@@ -23,7 +24,7 @@ import TopicDialog from "./TopicDialog";
 const MIN_DAYS = 14;
 // Two thresholds (hysteresis) so the layout can never flip back and forth while scrolling.
 const COMPACT_AFTER = 30;
-const TINY_AFTER = 260; // scroll distance of the whole phase: cards go from 85% to 20%
+const TINY_AFTER = 460; // scroll distance of the whole phase: cards go from 85% to 20%
 const FLY_MS = 320;
 const FADE_MS = 260; // cross-fade out
 const ENTER_MS = 400; // cross-fade in
@@ -37,6 +38,7 @@ type Modal =
   | { kind: "help" }
   | { kind: "share" }
   | { kind: "notify" }
+  | { kind: "goals" }
   | null;
 
 export default function Tickwell({ roomId, demo = false }: { roomId: string; demo?: boolean }) {
@@ -119,10 +121,57 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
     const sheet = sheetScroll.current;
     if (!el || !sheet) return;
 
+    // Phase 1 shows the cards wrapped in rows; leaving it glides every card, the top bar and the
+    // table to their new places (a FLIP animation: measure, switch, play from the old spot).
+    const glide = (change: () => void) => {
+      const reduce = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+      const topbar = el.querySelector<HTMLElement>(".topbar");
+      const sticky = block.current;
+      const cards = Array.from(el.querySelectorAll<HTMLElement>(".cards-row .card-cell .card"));
+      const from = cards.map((c) => c.getBoundingClientRect());
+      const sheetTop = sheet.getBoundingClientRect().top;
+      const topH = topbar?.offsetHeight ?? 0;
+      const stickyH = sticky?.offsetHeight ?? 0;
+      el.setAttribute("data-noanim", "");
+      change();
+      const to = cards.map((c) => c.getBoundingClientRect());
+      const sheetTop2 = sheet.getBoundingClientRect().top;
+      const topH2 = topbar?.offsetHeight ?? 0;
+      const stickyH2 = sticky?.offsetHeight ?? 0;
+      el.removeAttribute("data-noanim");
+      if (reduce) return;
+      const opt: KeyframeAnimationOptions = { duration: 480, easing: "cubic-bezier(0.22, 0.8, 0.25, 1)" };
+      cards.forEach((c, i) => {
+        const a = from[i];
+        const b = to[i];
+        c.animate(
+          [
+            { transform: `translate(${a.left - b.left}px, ${a.top - b.top}px)`, width: `${a.width}px`, height: `${a.height}px` },
+            { transform: "none", width: `${b.width}px`, height: `${b.height}px` },
+          ],
+          opt,
+        );
+      });
+      topbar?.animate([{ height: `${topH}px` }, { height: `${topH2}px` }], opt);
+      sticky?.animate([{ height: `${stickyH}px` }, { height: `${stickyH2}px` }], opt);
+      sheet.animate([{ transform: `translateY(${sheetTop - sheetTop2}px)` }, { transform: "none" }], opt);
+    };
+
     const applyPhase = () => {
       const p = phase.current;
-      if (p >= COMPACT_AFTER) el.setAttribute("data-compact", "");
-      else el.removeAttribute("data-compact");
+      const wantCompact = p >= COMPACT_AFTER;
+      const isCompact = el.hasAttribute("data-compact");
+      if (wantCompact !== isCompact && el.hasAttribute("data-ready")) {
+        glide(() => {
+          if (wantCompact) el.setAttribute("data-compact", "");
+          else el.removeAttribute("data-compact");
+          if (block.current) block.current.scrollLeft = wantCompact ? sheet.scrollLeft : 0;
+          if (block.current && wantCompact) block.current.scrollTop = 0;
+        });
+      } else if (wantCompact !== isCompact) {
+        if (wantCompact) el.setAttribute("data-compact", "");
+        else el.removeAttribute("data-compact");
+      }
       if (p >= TINY_AFTER) el.setAttribute("data-tiny", "");
       else el.removeAttribute("data-tiny");
     };
@@ -131,6 +180,18 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
       if (dx) {
         sheet.scrollLeft += dx;
         if (block.current) block.current.scrollLeft = sheet.scrollLeft; // cards line up with the columns
+      }
+      // Phase 1 with many cards: the wrapped rows scroll inside their own block first.
+      const b = block.current?.querySelector<HTMLElement>(".cards-row") ?? null;
+      if (b && !el.hasAttribute("data-compact") && b.scrollHeight > b.clientHeight + 1) {
+        if (dy > 0 && b.scrollTop + b.clientHeight < b.scrollHeight - 1) {
+          b.scrollTop += dy;
+          return;
+        }
+        if (dy < 0 && b.scrollTop > 0) {
+          b.scrollTop += dy;
+          return;
+        }
       }
       if (dy > 0) {
         if (phase.current < TINY_AFTER) {
@@ -202,7 +263,9 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
     el.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("keydown", onKey);
     applyPhase();
+    const ready = requestAnimationFrame(() => el.setAttribute("data-ready", ""));
     return () => {
+      cancelAnimationFrame(ready);
       sheet.removeEventListener("scroll", onSheetScroll);
       el.removeEventListener("wheel", onWheel);
       el.removeEventListener("touchstart", onTouchStart);
@@ -336,6 +399,17 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
   const close = useCallback(() => setModal(null), []);
 
   const create = () => setModal({ kind: "topic", topic: null });
+
+  /** Goals notepad: one signal topic of 1 hour per new entry. Returns how many were added. */
+  const addGoalTopics = (titles: string[]) => {
+    const room = Math.max(0, 100 - topics.length);
+    const list = titles.slice(0, room);
+    list.forEach((title, i) =>
+      save({ id: uid(), title, color: COLORS[(topics.length + i) % COLORS.length], goalMs: 3600e3, kind: "signal", startedAt: null }),
+    );
+    if (list.length) track("goals_added_as_topics");
+    return list.length;
+  };
 
   // "Create" in the header: a new topic here, or a brand-new room with its own link.
   const router = useRouter();
@@ -500,9 +574,18 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
         {hydrated && (
           <div className="board" style={{ ["--n" as string]: Math.max(n, 1) }}>
             {/* Sticky block: the timer cards and the column labels */}
+            <button className="goals-fab" onClick={() => setModal({ kind: "goals" })} aria-label="Goals" title="Goals">
+              <NotesIcon size={20} />
+              <span>Goals</span>
+            </button>
             <div className="sticky-top" ref={block}>
               <div className="grid cards-row">
-                <div className="corner" />
+                <div className="corner">
+                  <button className="goals-card" onClick={() => setModal({ kind: "goals" })} aria-label="Goals" title="Goals">
+                    <NotesIcon size={20} />
+                    <span>Goals</span>
+                  </button>
+                </div>
                 <div />
                 {active.length === 0 ? (
                   <div className="card-cell">
@@ -689,6 +772,14 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
             </button>
           </div>
         </div>
+      )}
+      {modal?.kind === "goals" && (
+        <GoalsDialog
+          roomId={demo ? "demo" : roomId}
+          existing={topics.filter((t) => !t.deleted).map((t) => t.title)}
+          onAdd={addGoalTopics}
+          onClose={close}
+        />
       )}
       {!demo && modal?.kind === "notify" && <NotificationsDialog roomId={roomId} onClose={close} />}
       {!demo && modal?.kind === "share" && (

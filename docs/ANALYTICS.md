@@ -23,3 +23,9 @@ Traffic, heatmaps, engagement time and user journeys come from PostHog Cloud (EU
 ## Suggested dashboards
 - Funnel: `$pageview` -> `topic_saved` -> `timer_started` -> `notifications_enabled`.
 - Paths and Web analytics for the user journey; Heatmaps for clicks and scroll depth.
+
+## The /room sample page
+Analytics reports every room as `/room`, so heatmaps are drawn over `https://tickwell.atonu.online/room`.
+That page (`src/app/room/page.tsx`) is a sample room with example topics. It is kept in memory only, never
+saved or synced, has no welcome tour, and is hidden from search engines. In PostHog, open Heatmaps and enter
+that address.

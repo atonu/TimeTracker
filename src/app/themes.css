@@ -2516,7 +2516,7 @@ button.rem-custom-link:hover {
 /* First phase: the cards wrap in rows, 4 per row on PC */
 .scroller:not([data-compact]) .sticky-top {
   /* top 85% of the window: top bar + Goals button + this block; the history keeps the bottom 15% */
-  height: calc(85dvh - 76px - 44px);
+  height: calc(85dvh - 76px - 56px);
   display: flex;
   flex-direction: column;
 }
@@ -2567,7 +2567,7 @@ button.rem-custom-link:hover {
     display: none;
   }
   .scroller:not([data-compact]) .sticky-top {
-    height: calc(85dvh - 76px - 40px);
+    height: calc(85dvh - 76px - 48px);
   }
   .scroller:not([data-compact]) .sticky-top > .cards-row {
     gap: 12px;
@@ -2582,15 +2582,6 @@ button.rem-custom-link:hover {
   .scroller[data-compact] .goals-card span {
     font-size: 12px;
   }
-}
-
-/* Signal topics carry a green glow under the card */
-.card.signal {
-  box-shadow: var(--shadow-sm), 0 14px 18px -12px rgba(52, 199, 100, 0.7);
-}
-.card.signal:hover,
-.card.signal.running {
-  box-shadow: var(--shadow-md), 0 16px 22px -12px rgba(40, 180, 90, 0.85);
 }
 
 /* Category toggle in the topic dialog */
@@ -2833,5 +2824,187 @@ button.rem-custom-link:hover {
     --card-w: calc((100cqw - 56px - 36px) / 4);
     --card-h: 150px;
     --time: 42px;
+  }
+}
+
+/* Phone: the Goals button is only an icon, also in the scrolled phases */
+@media (max-width: 640px) {
+  .goals-card span {
+    display: none;
+  }
+  .scroller[data-compact] .goals-card {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+  }
+}
+
+/* First phase: the table does not scroll sideways, on any screen */
+.scroller:not([data-compact]) .sheet-scroll {
+  overflow-x: hidden;
+}
+
+/* Phone: title and play button keep clear of the progress ring */
+@media (max-width: 640px) {
+  .scroller:not([data-tiny]) .card {
+    padding: 16px;
+  }
+  .scroller:not([data-tiny]) .card-head {
+    padding-left: 6px;
+    margin-top: 2px;
+  }
+  .scroller:not([data-tiny]) {
+    --btn-edge: 22px;
+  }
+}
+@media (max-width: 640px) {
+  .scroller[data-compact]:not([data-tiny]) .card-body {
+    padding-bottom: 34px; /* the countdown sits above the play button */
+  }
+}
+
+/* First phase: the cards are 90% of their cell, centred in it */
+.scroller:not([data-compact]) .cards-row .card-cell {
+  justify-content: center;
+}
+.scroller:not([data-compact]) .cards-row .card {
+  width: 90%;
+}
+
+/* First phase: more air between the wrapped rows */
+.scroller:not([data-compact]) .sticky-top > .cards-row {
+  row-gap: 32px;
+}
+@media (max-width: 640px) {
+  .scroller:not([data-compact]) .sticky-top > .cards-row {
+    row-gap: 24px;
+  }
+}
+
+/* First phase: the whole card area is 90% as wide, centred */
+.scroller:not([data-compact]) .sticky-top > .cards-row {
+  width: 90%;
+  margin-inline: auto;
+  padding-inline: 0;
+  --card-w: calc((85cqw - 48px) / 4 - 1px);
+}
+@media (min-width: 641px) {
+  .scroller[data-dense]:not([data-compact]) .sticky-top > .cards-row {
+    --card-w: calc((85cqw - 36px) / 4 - 1px);
+  }
+}
+@media (max-width: 640px) {
+  .scroller:not([data-compact]) .sticky-top > .cards-row {
+    --card-w: calc((85cqw - 12px) / 2 - 1px);
+  }
+}
+.scroller:not([data-compact]) .cards-row .card-cell {
+  min-width: 0;
+}
+
+/* Goals and the expand button share one centre line, a little lower */
+.goals-fab {
+  margin-top: 12px;
+}
+.dense-toggle {
+  top: 90px;
+}
+@media (max-width: 640px) {
+  .goals-fab {
+    margin: 4px 16px 4px;
+  }
+}
+
+/* First phase: the card area is 85% of the full width; cards fill their slots */
+.scroller:not([data-compact]) .sticky-top > .cards-row {
+  width: 85%;
+}
+.scroller:not([data-compact]) .cards-row .card {
+  width: 100%;
+}
+
+/* First phase (final): cards keep a fixed 24px gap and sit centred; the width follows the screen */
+.scroller:not([data-compact]) .sticky-top > .cards-row,
+.scroller[data-dense]:not([data-compact]) .sticky-top > .cards-row {
+  width: 100%;
+  margin-inline: 0;
+  padding-inline: 28px;
+  gap: 24px;
+  row-gap: 24px;
+  justify-content: center;
+  --card-w: calc((100cqw - 56px - 72px) / 4 - 1px);
+}
+@media (max-width: 640px) {
+  .scroller:not([data-compact]) .sticky-top > .cards-row {
+    padding-inline: 16px;
+    gap: 24px;
+    row-gap: 24px;
+    --card-w: calc((100cqw - 32px - 24px) / 2 - 1px);
+  }
+}
+
+/* First phase: cards are 90% of the width the screen would give them; the 24px gap stays */
+.scroller:not([data-compact]) .sticky-top > .cards-row,
+.scroller[data-dense]:not([data-compact]) .sticky-top > .cards-row {
+  --card-w: calc(((100cqw - 56px - 72px) / 4 - 1px) * 0.9);
+}
+@media (max-width: 640px) {
+  .scroller:not([data-compact]) .sticky-top > .cards-row {
+    --card-w: calc(((100cqw - 32px - 24px) / 2 - 1px) * 0.9);
+  }
+}
+
+/* Phase 1, expanded (compact size): cards and table columns are 80% as wide */
+@media (min-width: 641px) {
+  .scroller[data-dense]:not([data-compact]) {
+    --col-w: calc(320px * 0.8);
+  }
+  .scroller[data-dense]:not([data-compact]) .sticky-top > .cards-row {
+    --card-w: calc(((100cqw - 56px - 72px) / 4 - 1px) * 0.9 * 0.8);
+  }
+}
+
+/* Phase 3: cards and columns are 90% as wide */
+.scroller[data-tiny] {
+  --card-w: calc(390px * 0.9);
+  --col-w: calc(406px * 0.9);
+}
+@media (min-width: 641px) {
+  .scroller[data-dense][data-tiny] {
+    --card-w: calc(300px * 0.9);
+    --col-w: calc(320px * 0.9);
+  }
+}
+@media (max-width: 640px) {
+  .scroller[data-tiny] {
+    --card-w: calc(132px * 0.9);
+    --col-w: calc(148px * 0.9);
+  }
+}
+
+/* Phase 2, normal size, desktop: cards a little smaller; the table columns stay as they are */
+@media (min-width: 641px) {
+  .scroller[data-compact]:not([data-tiny]):not([data-dense]) {
+    --card-w: calc(390px * 0.9);
+  }
+}
+@media (min-width: 641px) {
+  .scroller[data-compact]:not([data-tiny]):not([data-dense]) {
+    --col-w: calc(390px * 0.9 + 24px); /* column = card + 24px gap */
+  }
+}
+
+/* Play/pause button: a little smaller in phases 2 and 3 */
+.scroller[data-compact] {
+  --btn: 42px;
+}
+@media (min-width: 641px) {
+  .scroller[data-dense][data-compact] {
+    --btn: 32px;
+  }
+}
+@media (max-width: 640px) {
+  .scroller[data-compact] {
+    --btn: 28px;
   }
 }

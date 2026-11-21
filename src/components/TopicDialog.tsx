@@ -13,6 +13,7 @@ type Props = {
   onClose: () => void;
 };
 
+const NOISE_COLOR = "#c9c9ce"; // noise topics are always light gray
 const PRESETS = [30, 60, 120, 180, 240];
 
 export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props) {
@@ -40,7 +41,7 @@ export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props)
     onSave({
       id: topic?.id ?? uid(),
       title: title.trim(),
-      color,
+      color: kind === "noise" ? NOISE_COLOR : color,
       goalMs: totalMin * 60000,
       kind,
       startedAt: topic?.startedAt ?? null,
@@ -68,23 +69,6 @@ export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props)
             onChange={(e) => setTitle(e.target.value)}
           />
         </label>
-
-        <div className="field">
-          <span>Color</span>
-          <div className="swatches">
-            {COLORS.map((c) => (
-              <button
-                type="button"
-                key={c}
-                className={`swatch${c === color ? " on" : ""}`}
-                style={{ background: c }}
-                onClick={() => setColor(c)}
-                aria-label={`Color ${c}`}
-                aria-pressed={c === color}
-              />
-            ))}
-          </div>
-        </div>
 
         <div className="field">
           <span>Time for the day</span>
@@ -136,6 +120,25 @@ export default function TopicDialog({ topic, onSave, onDelete, onClose }: Props)
             ))}
           </div>
         </div>
+
+        {kind === "signal" && (
+        <div className="field">
+          <span>Color</span>
+          <div className="swatches">
+            {COLORS.map((c) => (
+              <button
+                type="button"
+                key={c}
+                className={`swatch${c === color ? " on" : ""}`}
+                style={{ background: c }}
+                onClick={() => setColor(c)}
+                aria-label={`Color ${c}`}
+                aria-pressed={c === color}
+              />
+            ))}
+          </div>
+        </div>
+        )}
 
         <div className="actions">
           {topic && (

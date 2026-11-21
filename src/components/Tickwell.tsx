@@ -177,7 +177,7 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
     };
 
     const move = (dy: number, dx: number) => {
-      if (dx) {
+      if (dx && el.hasAttribute("data-compact")) { // no sideways scrolling in the first phase
         sheet.scrollLeft += dx;
         if (block.current) block.current.scrollLeft = sheet.scrollLeft; // cards line up with the columns
       }

@@ -15,6 +15,7 @@ import ColumnLabel from "./ColumnLabel";
 import ColumnsPanel from "./ColumnsPanel";
 import { AlarmIcon, ArchiveIcon, BrushIcon, CollapseIcon, EyeIcon, ExpandIcon, HelpIcon, PlusIcon, ShareIcon, BellIcon, NotesIcon } from "./icons";
 import GoalsDialog from "./GoalsDialog";
+import ConfirmModal from "./ConfirmModal";
 import ShareDialog from "./ShareDialog";
 import { track } from "@/lib/analytics";
 import NotificationsDialog from "./NotificationsDialog";
@@ -41,6 +42,7 @@ type Modal =
   | { kind: "share" }
   | { kind: "notify" }
   | { kind: "goals" }
+  | { kind: "confirm"; title: string; message: string; confirmLabel: string; danger?: boolean; onConfirm: () => void }
   | null;
 
 export default function Tickwell({ roomId, demo = false }: { roomId: string; demo?: boolean }) {
@@ -61,6 +63,7 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
     restore,
     remove,
     purgeHistory,
+    reset,
     loadDemo,
   } = useTracker(roomId, demo);
   const { theme, setTheme, bg, setBg } = useAppearance();
@@ -646,6 +649,16 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
                         onEdit={() => setModal({ kind: "topic", topic: t })}
                         onCreate={create}
                         onArchive={() => archiveTopic(t)}
+                        onReset={() =>
+                          setModal({
+                            kind: "confirm",
+                            title: "Reset topic?",
+                            message: `This stops the timer on "${t.title}" and erases all of its recorded history. This can't be undone.`,
+                            confirmLabel: "Reset",
+                            danger: true,
+                            onConfirm: () => reset(t.id),
+                          })
+                        }
                       />
                     </div>
                   ))
@@ -825,6 +838,19 @@ export default function Tickwell({ roomId, demo = false }: { roomId: string; dem
             </button>
           </div>
         </div>
+      )}
+      {modal?.kind === "confirm" && (
+        <ConfirmModal
+          title={modal.title}
+          message={modal.message}
+          confirmLabel={modal.confirmLabel}
+          danger={modal.danger}
+          onConfirm={() => {
+            modal.onConfirm();
+            close();
+          }}
+          onCancel={close}
+        />
       )}
       {modal?.kind === "goals" && (
         <GoalsDialog

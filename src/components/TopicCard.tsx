@@ -2,7 +2,7 @@
 
 import { useEffect, useRef, useState } from "react";
 import { clock, fmtGoal, isRinging, type Topic } from "@/lib/tracker";
-import { AlarmIcon, BanIcon, CheckIcon, PauseIcon, PencilIcon, PlayIcon, PlusIcon, StopIcon } from "./icons";
+import { AlarmIcon, BanIcon, CheckIcon, PauseIcon, PencilIcon, PlayIcon, PlusIcon, ResetIcon, StopIcon } from "./icons";
 import TickFrame from "./TickFrame";
 
 const ASK_MS = 5000; // how long "Set reminder?" stays
@@ -20,11 +20,12 @@ type Props = {
   onEdit: () => void;
   onCreate: () => void;
   onArchive: () => void;
+  onReset: () => void;
   onSetBreak: (ms: number) => void;
   onStopAlarm: () => void;
 };
 
-export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCreate, onArchive, onSetBreak, onStopAlarm }: Props) {
+export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCreate, onArchive, onReset, onSetBreak, onStopAlarm }: Props) {
   const running = topic.startedAt != null;
   const progress = topic.goalMs > 0 ? spentMs / topic.goalMs : 0;
   const done = progress >= 1;
@@ -162,6 +163,9 @@ export default function TopicCard({ topic, now, spentMs, onToggle, onEdit, onCre
         <span className="badge" style={{ background: topic.color }} />
         <ScrollTitle title={topic.title} />
         <div className="card-tools">
+          <button className="icon-btn" onClick={onReset} aria-label={`Reset ${topic.title}`} title="Reset timer and history">
+            <ResetIcon />
+          </button>
           <button className="icon-btn" onClick={onArchive} aria-label={`Archive ${topic.title}`} title="Archive">
             <BanIcon />
           </button>

@@ -14,6 +14,7 @@ const TRACKED: Record<string, string> = {
   archive: "topic_archived",
   restore: "topic_restored",
   remove: "topic_deleted",
+  reset: "topic_reset",
 };
 import { browserZone, dayKey, demoData, liveLog, setZone, type Log, type Topic } from "./tracker";
 
@@ -303,6 +304,7 @@ export function useTracker(roomId: string, demo = false) {
   const archive = useCallback((id: string) => dispatch({ t: "archive", id }), [dispatch]);
   const restore = useCallback((id: string) => dispatch({ t: "restore", id }), [dispatch]);
   const remove = useCallback((id: string) => dispatch({ t: "remove", id }), [dispatch]);
+  const reset = useCallback((id: string) => dispatch({ t: "reset", id }), [dispatch]);
   const purgeHistory = useCallback((id: string) => dispatch({ t: "purge", id }), [dispatch]);
   const loadDemo = useCallback(() => {
     const d = demoData(Date.now() + offset.current);
@@ -326,6 +328,7 @@ export function useTracker(roomId: string, demo = false) {
     restore,
     remove,
     purgeHistory,
+    reset,
     loadDemo,
   };
 }

@@ -2409,6 +2409,19 @@ button.rem-custom-link:hover {
 /* Expanded cards: a little gap above the bottom text (goal reached / of n minutes n%) */
 .scroller:not([data-compact]) .card-foot { margin-top: 12px; }
 
+/* Phones: the hover/tap tools panel sits centred on the card in every phase (phase 3 included) */
+@media (max-width: 640px) {
+  .scroller .card-tools,
+  .scroller[data-tiny] .card-tools {
+    position: absolute;
+    left: 50%;
+    right: auto;
+    width: max-content;
+    margin: 0;
+    translate: -50% 0;
+  }
+}
+
 /* The play / pause button keeps the size it has in phase 1 through phases 2 and 3 */
 .scroller[data-compact] { --btn: 48px; }
 @media (min-width: 641px) { .scroller[data-dense][data-compact] { --btn: 36px; } }

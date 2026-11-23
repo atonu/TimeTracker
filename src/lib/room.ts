@@ -31,6 +31,7 @@ export type OpBody =
   | { t: "restore"; id: string }
   | { t: "remove"; id: string }
   | { t: "purge"; id: string }
+  | { t: "reset"; id: string }
   | { t: "settle" }
   | { t: "replace"; topics: Topic[]; log: Log };
 
@@ -109,6 +110,7 @@ export function parseOp(x: unknown): Op | null {
     case "restore":
     case "remove":
     case "purge":
+    case "reset":
       return isId(o.id) ? ({ ...base, t: o.t, id: o.id } as Op) : null;
     case "break":
       return isId(o.id) && isNum(o.ms, 1000, 24 * 3600e3) ? { ...base, t: "break", id: o.id, ms: Math.round(o.ms) } : null;
@@ -207,6 +209,19 @@ function change(s: RoomState, op: Op, now: number): RoomState {
       }
       const t = s.topics.find((x) => x.id === op.id);
       return { ...s, topics: t?.deleted ? s.topics.filter((x) => x.id !== op.id) : s.topics, log };
+    }
+    case "reset": {
+      // stop the timer, drop any break reminder and forget all the time booked for this topic
+      const log: Log = {};
+      for (const [day, row] of Object.entries(s.log)) {
+        const { [op.id]: _drop, ...rest } = row;
+        if (Object.keys(rest).length) log[day] = rest;
+      }
+      return {
+        ...s,
+        topics: s.topics.map((t) => (t.id === op.id ? { ...t, startedAt: null, breakUntil: null } : t)),
+        log,
+      };
     }
     case "settle":
       return settle(s, now);

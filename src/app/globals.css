@@ -617,6 +617,25 @@ button {
 .btn-text.danger:hover {
   color: #d92d20;
 }
+.btn-primary.danger {
+  background: #d92d20;
+  color: #fff;
+}
+/* Same size as desktop on every screen (the phone topbar rule shrinks .btn-primary to a circle) */
+.dialog .btn-primary.confirm-ok {
+  width: auto;
+  height: 40px;
+  padding: 0 18px;
+  gap: 8px;
+  justify-content: center;
+  white-space: nowrap;
+}
+.confirm-text {
+  margin: 0;
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--muted);
+}
 
 .overlay {
   position: fixed;

@@ -62,6 +62,13 @@ export const RestoreIcon = () => (
   </svg>
 );
 
+export const ResetIcon = () => (
+  <svg {...base} width={15} height={15}>
+    <path d="M3 12a9 9 0 1 0 3-6.7L3 8" />
+    <path d="M3 3v5h5" />
+  </svg>
+);
+
 export const ChevronIcon = () => (
   <svg {...base} width={16} height={16}>
     <path d="m9 6 6 6-6 6" />
